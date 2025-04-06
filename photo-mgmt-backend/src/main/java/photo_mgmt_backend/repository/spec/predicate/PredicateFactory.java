@@ -1,10 +1,11 @@
 package photo_mgmt_backend.repository.spec.predicate;
 
-import en.sd.chefmgmt.repository.spec.util.ReflectionUtil;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Component;
+import photo_mgmt_backend.repository.spec.util.ReflectionUtil;
 
 import java.util.List;
 import java.util.Map;

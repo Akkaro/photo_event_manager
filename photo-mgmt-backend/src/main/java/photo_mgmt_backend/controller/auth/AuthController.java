@@ -1,8 +1,5 @@
 package photo_mgmt_backend.controller.auth;
 
-import en.sd.chefmgmt.exception.model.ExceptionBody;
-import en.sd.chefmgmt.model.dto.auth.LoginRequestDTO;
-import en.sd.chefmgmt.model.dto.auth.LoginResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,6 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import photo_mgmt_backend.exception.model.ExceptionBody;
+import photo_mgmt_backend.model.dto.auth.LoginRequestDTO;
+import photo_mgmt_backend.model.dto.auth.LoginResponseDTO;
 
 @RequestMapping("/v1/auth")
 @Tag(name = "Authentication", description = "Operations for user authentication and login")
