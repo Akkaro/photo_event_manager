@@ -4,7 +4,7 @@ CREATE TABLE "user" (
                         user_name VARCHAR(25) NOT NULL,
                         email VARCHAR(25) NOT NULL,
                         password_hash VARCHAR(255) NOT NULL,
-                        user_type VARCHAR(25),
+                        role VARCHAR(25),
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
