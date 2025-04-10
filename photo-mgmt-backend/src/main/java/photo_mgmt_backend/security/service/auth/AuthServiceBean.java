@@ -1,13 +1,13 @@
 package photo_mgmt_backend.security.service.auth;
 
-import en.sd.chefmgmt.exception.model.ExceptionCode;
-import en.sd.chefmgmt.model.entity.UserEntity;
-import en.sd.chefmgmt.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import photo_mgmt_backend.exception.model.ExceptionCode;
+import photo_mgmt_backend.model.entity.UserEntity;
+import photo_mgmt_backend.repository.user.UserRepository;
 
 import java.util.UUID;
 
@@ -23,6 +23,6 @@ public class AuthServiceBean implements AuthService {
         UserEntity user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new BadCredentialsException(ExceptionCode.FORBIDDEN_ACCESS.getMessage()));
 
-        return user.getId().equals(userId);
+        return user.getUserId().equals(userId);
     }
 }

@@ -14,6 +14,5 @@ public interface UserMapper extends DtoMapper<UserEntity, UserRequestDTO, UserRe
     UserResponseDTO convertEntityToResponseDto(UserEntity entity);
 
     @Mapping(target = "userId", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
     void updateUserEntity(@MappingTarget UserEntity userEntity, UserRequestDTO userRequestDTO);
 }

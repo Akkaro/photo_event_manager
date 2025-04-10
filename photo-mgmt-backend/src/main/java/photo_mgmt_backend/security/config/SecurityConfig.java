@@ -1,8 +1,5 @@
 package photo_mgmt_backend.security.config;
 
-import en.sd.chefmgmt.security.filter.AuthorizationFilter;
-import en.sd.chefmgmt.security.filter.LoginFilter;
-import en.sd.chefmgmt.security.util.SecurityConstants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +15,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import photo_mgmt_backend.security.filter.AuthorizationFilter;
+import photo_mgmt_backend.security.filter.LoginFilter;
+import photo_mgmt_backend.security.util.SecurityConstants;
 
 @Configuration
 @EnableWebSecurity

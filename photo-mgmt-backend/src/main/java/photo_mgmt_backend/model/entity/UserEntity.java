@@ -31,8 +31,9 @@ public class UserEntity {
     @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(name = "user_type")
-    private String userType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @Column(name = "created_at")
     private ZonedDateTime createdAt;

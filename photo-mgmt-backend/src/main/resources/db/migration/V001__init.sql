@@ -8,14 +8,6 @@ CREATE TABLE "user" (
                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create the user_session table
-CREATE TABLE user_session (
-                              session_id UUID PRIMARY KEY,
-                              user_id UUID NOT NULL,
-                              created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                              FOREIGN KEY (user_id) REFERENCES "user" (user_id)
-);
-
 -- Create the album table
 CREATE TABLE album (
                        album_id UUID PRIMARY KEY,

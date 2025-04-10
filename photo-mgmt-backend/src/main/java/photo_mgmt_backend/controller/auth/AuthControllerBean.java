@@ -1,8 +1,9 @@
 package photo_mgmt_backend.controller.auth;
 
-import en.sd.chefmgmt.model.dto.auth.LoginRequestDTO;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
+import photo_mgmt_backend.model.dto.auth.LoginRequestDTO;
 
 @Slf4j
 @RestController

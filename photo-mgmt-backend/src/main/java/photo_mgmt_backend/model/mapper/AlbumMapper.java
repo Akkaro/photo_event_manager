@@ -14,10 +14,11 @@ public interface AlbumMapper extends DtoMapper<AlbumEntity, AlbumRequestDTO, Alb
     @Mapping(target = "ownerName", source = "owner.userName")
     AlbumResponseDTO convertEntityToResponseDto(AlbumEntity entity);
 
+//    @Override
+//    @Mapping(target = "albumId", ignore = true)
+//    AlbumResponseDTO convertRequestDtoToEntity(AlbumRequestDTO entity);
+
     @Mapping(target = "albumId", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "ownerId", ignore = true)
-    @Mapping(target = "owner", ignore = true)
     void updateAlbumEntity(@MappingTarget AlbumEntity albumEntity, AlbumRequestDTO albumRequestDTO);
 }
 

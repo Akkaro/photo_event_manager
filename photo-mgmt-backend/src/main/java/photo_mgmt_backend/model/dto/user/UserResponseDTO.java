@@ -7,6 +7,6 @@ public record UserResponseDTO(
         UUID userId,
         String userName,
         String email,
-        String userType,
+        String role,
         ZonedDateTime createdAt
 ) { }

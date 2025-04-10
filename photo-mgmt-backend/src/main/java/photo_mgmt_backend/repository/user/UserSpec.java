@@ -17,6 +17,6 @@ public class UserSpec extends EntitySpec<UserEntity, UserFilterDTO> {
 
     @Override
     protected List<String> getFilterableFields() {
-        return List.of("userName", "email", "userType", "createdAt");
+        return List.of("userName", "email", "role", "createdAt");
     }
 }

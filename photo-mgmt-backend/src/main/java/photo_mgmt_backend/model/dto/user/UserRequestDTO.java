@@ -4,5 +4,5 @@ public record UserRequestDTO(
         String userName,
         String email,
         String password,
-        String userType
+        String role
 ) { }

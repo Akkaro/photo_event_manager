@@ -6,7 +6,6 @@ import java.util.List;
 
 public interface DtoMapper<Entity, RequestDto, ResponseDto> {
 
-    @Mapping(target = "id", ignore = true)
     Entity convertRequestDtoToEntity(RequestDto requestDto);
 
     ResponseDto convertEntityToResponseDto(Entity entity);
