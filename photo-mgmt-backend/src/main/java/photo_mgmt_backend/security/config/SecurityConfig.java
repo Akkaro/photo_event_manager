@@ -17,6 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import photo_mgmt_backend.security.filter.AuthorizationFilter;
 import photo_mgmt_backend.security.filter.LoginFilter;
+import photo_mgmt_backend.security.filter.RegistrationFilter;
 import photo_mgmt_backend.security.util.SecurityConstants;
 
 @Configuration
@@ -28,6 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             LoginFilter loginFilter,
+            RegistrationFilter registrationFilter,
             AuthorizationFilter authorizationFilter,
             AuthenticationEntryPoint authenticationEntryPoint,
             AuthenticationManager authenticationManager
@@ -44,6 +46,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint))
                 .authenticationManager(authenticationManager)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(registrationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
