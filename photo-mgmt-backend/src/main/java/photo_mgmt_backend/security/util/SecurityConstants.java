@@ -7,6 +7,7 @@ public final class SecurityConstants {
 
     public static final Integer PASSWORD_STRENGTH = 10;
     public static final String LOGIN_URL = "/v1/auth/login";
+    public static final String REGISTER_URL = "/v1/auth/register";
     public static final String JWT_TOKEN = "jwt-token";
     public static final String AUTH_PATHS_TO_SKIP = "/v1/auth/**";
     public static final String[] SWAGGER_PATHS_TO_SKIP = {
