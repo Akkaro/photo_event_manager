@@ -11,8 +11,7 @@ public record PhotoFilterDTO(
         UUID albumId,
         UUID ownerId,
         Boolean isEdited,
-        ZonedDateTime uploadedBefore,
-        ZonedDateTime uploadedAfter,
+        ZonedDateTime uploadedAt,
         @Min(value = 0, message = "Page number must be at least 0.")
         Integer pageNumber,
 

@@ -106,6 +106,6 @@ public class AlbumServiceBean implements AlbumService {
     private String generateQrCode(AlbumEntity album) {
         // In a real implementation, this would generate an actual QR code
         // For now, just returning a placeholder string
-        return "qr_code_" + album.getAlbumId().toString();
+        return "qr_code_" + album.getAlbumName().toString();
     }
 }
