@@ -55,6 +55,7 @@ public class PhotoControllerBean implements PhotoController {
                 currentUsername,  // userName
                 null,            // email
                 null,            // role
+                null,           //createdAt
                 0,               // pageNumber
                 1                // pageSize - We only need one result
         );
@@ -86,6 +87,7 @@ public class PhotoControllerBean implements PhotoController {
                 currentUsername,  // userName
                 null,            // email
                 null,            // role
+                null,           //createdAt
                 0,               // pageNumber
                 1                // pageSize - We only need one result
         );
