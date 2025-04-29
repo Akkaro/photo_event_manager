@@ -48,12 +48,12 @@ public class PhotoControllerBean implements PhotoController {
 
         // Get the current authenticated user's username
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
+        String email = authentication.getName();
 
         // Create a filter to find the user by username using the record constructor
         UserFilterDTO filter = new UserFilterDTO(
-                currentUsername,  // userName
-                null,            // email
+                null,  // userName
+                email,            // email
                 null,            // role
                 null,           //createdAt
                 0,               // pageNumber

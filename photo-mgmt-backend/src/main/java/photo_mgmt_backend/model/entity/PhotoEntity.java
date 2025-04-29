@@ -22,6 +22,9 @@ public class PhotoEntity {
     @Column(name = "photo_id")
     private UUID photoId;
 
+    @Column(name = "photo_name")
+    private String photoName;
+
     @Column(name = "album_id")
     private UUID albumId;
 

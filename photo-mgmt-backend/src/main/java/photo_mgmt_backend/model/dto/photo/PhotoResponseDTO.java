@@ -5,10 +5,9 @@ import java.util.UUID;
 
 public record PhotoResponseDTO(
         UUID photoId,
+        String photoName,
         UUID albumId,
-        String albumName,
         UUID ownerId,
-        String ownerName,
         String path,
         ZonedDateTime uploadedAt,
         Boolean isEdited
