@@ -21,6 +21,7 @@ CREATE TABLE album (
 -- Create the photo table
 CREATE TABLE photo (
                        photo_id UUID PRIMARY KEY,
+                       photo_name VARCHAR(25) NOT NULL,
                        album_id UUID NOT NULL,
                        owner_id UUID NOT NULL,
                        path VARCHAR(255) NOT NULL,

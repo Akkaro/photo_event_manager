@@ -62,12 +62,13 @@ public class PhotoServiceBean implements PhotoService {
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
         PhotoEntity photoToBeAdded = photoMapper.convertRequestDtoToEntity(photoRequestDTO);
+        photoToBeAdded.setPhotoName(photoRequestDTO.photoName());
         photoToBeAdded.setOwnerId(ownerId);
         photoToBeAdded.setUploadedAt(ZonedDateTime.now());
         photoToBeAdded.setIsEdited(false);
 
         // In a real application, this would handle file storage
-        String path = saveImage(photoRequestDTO.imagePath(), ownerId);
+        String path = saveImage(photoRequestDTO.photoName(), ownerId);
         photoToBeAdded.setPath(path);
 
         PhotoEntity photoAdded = photoRepository.save(photoToBeAdded);
@@ -111,10 +112,10 @@ public class PhotoServiceBean implements PhotoService {
     }
 
     // Helper method for file storage
-    private String saveImage(String imageData, UUID ownerId) {
+    private String saveImage(String photoName, UUID ownerId) {
         // In a real implementation, this would save the image to storage
         // For now, just returning a placeholder path
-        return "/images/" + ownerId + "/" + UUID.randomUUID() + ".jpg";
+        return "/images/" + ownerId + "/" + UUID.randomUUID() + "-" + photoName + ".jpg";
     }
 
     // Helper method for file deletion
