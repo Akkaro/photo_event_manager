@@ -11,8 +11,6 @@ import photo_mgmt_backend.model.entity.PhotoEntity;
 public interface PhotoMapper extends DtoMapper<PhotoEntity, PhotoRequestDTO, PhotoResponseDTO> {
 
     @Override
-    @Mapping(target = "albumName", source = "album.albumName")
-    @Mapping(target = "ownerName", source = "owner.userName")
     PhotoResponseDTO convertEntityToResponseDto(PhotoEntity entity);
 
     //@Mapping(target = "photoId", ignore = true)
