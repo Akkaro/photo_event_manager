@@ -41,7 +41,9 @@ export class LoginComponent implements OnInit {
     const credentials = { ...this.loginForm.value };
     this.authService.login(credentials)
       .subscribe({
-        next: () => this.getUserInfo(),
+        next: () => {
+          this.router.navigateByUrl(ROUTES.PHOTOS).then();
+        },
         error: (error: HttpErrorResponse) => this.errorMessage = error.error.message
       });
   }
