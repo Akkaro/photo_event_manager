@@ -14,8 +14,10 @@ export const httpRequestInterceptor: HttpInterceptorFn = (req, next) => {
   return next(modifiedReq);
 };
 
-const getUrl = (url: string) => {`${environment.apiUrl}${url}`;
+const getUrl = (url: string) => {
+  return `${environment.apiUrl}${url}`;
 };
+
 
 const getHeaders = (): HttpHeaders => {
   const cookieService = inject(CookieService);
