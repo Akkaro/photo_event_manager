@@ -13,13 +13,16 @@ export const routes: Routes = [
     }
   },
   {
-    path: ROUTES.ID,
+    path: ROUTES.LOGIN,
     loadComponent: () => import('./photo/photo.component').then(m => m.PhotoComponent),
     canActivate: [ hasAuthorization ],
     data: {
       requiredRoles: [ 'ADMIN', 'MODERATOR' ],
       isSelf: true
-    }
+    },
+    providers: [
+      { provide: 'renderMode', useValue: 'clientOnly' }
+    ]
   },
   {
     path: ROUTES.ALL,

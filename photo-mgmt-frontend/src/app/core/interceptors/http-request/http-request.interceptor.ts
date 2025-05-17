@@ -18,7 +18,6 @@ const getUrl = (url: string) => {
   return `${environment.apiUrl}${url}`;
 };
 
-
 const getHeaders = (): HttpHeaders => {
   const cookieService = inject(CookieService);
   const jwtToken = cookieService.get('jwt-token');
