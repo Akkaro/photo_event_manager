@@ -6,13 +6,12 @@ import { ROUTES } from '../../../core/config/routes.enum';
 import { AuthService } from '../../../core/services/auth/auth.service';
 import { UserService } from '../../../core/services/user/user.service';
 
-
 @Component({
   selector: 'app-login',
   standalone: true,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
-  imports: [ FormsModule, ReactiveFormsModule ]
+  imports: [FormsModule, ReactiveFormsModule]
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
@@ -27,8 +26,8 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
-      email: [ '', [ Validators.required, Validators.email ] ],
-      password: [ '', [ Validators.required ] ]
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]]
     });
   }
 
@@ -48,6 +47,14 @@ export class LoginComponent implements OnInit {
 
   dismissError(): void {
     this.errorMessage = undefined;
+  }
+
+  navigateToRegister(): void {
+    console.log('Navigating to register...', ROUTES.REGISTER);
+    this.router.navigateByUrl(`/${ROUTES.AUTH}/${ROUTES.REGISTER}`).then(
+      (success) => console.log('Navigation success:', success),
+      (error) => console.error('Navigation error:', error)
+    );
   }
 
   private getUserInfo(): void {
