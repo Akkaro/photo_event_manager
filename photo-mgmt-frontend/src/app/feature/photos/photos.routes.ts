@@ -13,7 +13,7 @@ export const routes: Routes = [
     }
   },
   {
-    path: ROUTES.LOGIN,
+    path: ROUTES.ID,
     loadComponent: () => import('./photo/photo.component').then(m => m.PhotoComponent),
     canActivate: [ hasAuthorization ],
     data: {

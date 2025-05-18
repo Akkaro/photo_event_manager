@@ -5,6 +5,7 @@ export enum ROUTES {
   PHOTOS = 'photos',
   EMPTY = '',
   FORBIDDEN = 'forbidden',
+  ID = ':id',
   LOGIN = 'login',
   NOT_FOUND = 'not-found',
   PROFILE = 'profile',
