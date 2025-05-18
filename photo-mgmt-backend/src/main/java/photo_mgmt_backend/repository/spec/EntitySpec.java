@@ -1,10 +1,10 @@
 package photo_mgmt_backend.repository.spec;
 
-import en.sd.chefmgmt.repository.spec.predicate.PredicateFactory;
-import en.sd.chefmgmt.repository.spec.util.ReflectionUtil;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import photo_mgmt_backend.repository.spec.predicate.PredicateFactory;
+import photo_mgmt_backend.repository.spec.util.ReflectionUtil;
 
 import java.util.List;
 import java.util.Map;

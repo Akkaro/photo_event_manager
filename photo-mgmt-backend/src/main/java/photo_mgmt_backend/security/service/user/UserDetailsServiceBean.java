@@ -1,8 +1,5 @@
 package photo_mgmt_backend.security.service.user;
 
-import en.sd.chefmgmt.exception.model.ExceptionCode;
-import en.sd.chefmgmt.model.entity.UserEntity;
-import en.sd.chefmgmt.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
@@ -10,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import photo_mgmt_backend.exception.model.ExceptionCode;
+import photo_mgmt_backend.model.entity.UserEntity;
+import photo_mgmt_backend.repository.user.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +27,9 @@ public class UserDetailsServiceBean implements UserDetailsService {
 
     private UserDetails getUserDetails(UserEntity user) {
         return User.builder()
+
                 .username(user.getEmail())
-                .password(user.getPassword())
+                .password(user.getPasswordHash())
                 .roles(user.getRole().name())
                 .build();
     }

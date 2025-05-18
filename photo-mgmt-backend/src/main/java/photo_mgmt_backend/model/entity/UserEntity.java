@@ -1,10 +1,7 @@
 package photo_mgmt_backend.model.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserEntity {
 
     @Id
@@ -31,8 +29,9 @@ public class UserEntity {
     @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(name = "user_type")
-    private String userType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
 
     @Column(name = "created_at")
     private ZonedDateTime createdAt;
