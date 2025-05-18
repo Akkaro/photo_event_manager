@@ -21,8 +21,11 @@ A Spring Boot application for managing photos in albums with user authentication
 Prompt and result token for login
 ![image](https://github.com/user-attachments/assets/e308997e-1371-4902-a73d-31e2675f2d05)
 
-Front End Login Page
-![image](https://github.com/user-attachments/assets/b4f9645f-2e51-4cc6-bd22-90deffc539d0)
+Frontend Login Page
+![image](https://github.com/user-attachments/assets/3713abff-1f64-49f3-817f-796edc1ed569)
+
+Frontend Register Page
+![image](https://github.com/user-attachments/assets/1d471d19-06d7-40a7-9b24-20381a121eac)
 
 Welcome Page after login
 ![image](https://github.com/user-attachments/assets/24619626-7817-486f-8d3d-6576055b6fd5)
