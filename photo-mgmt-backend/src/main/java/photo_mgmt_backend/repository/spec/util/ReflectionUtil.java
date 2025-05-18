@@ -1,7 +1,7 @@
 package photo_mgmt_backend.repository.spec.util;
 
-import en.sd.chefmgmt.repository.spec.predicate.PredicateStrategy;
 import lombok.experimental.UtilityClass;
+import photo_mgmt_backend.repository.spec.predicate.PredicateStrategy;
 
 import java.lang.reflect.Field;
 import java.util.Optional;

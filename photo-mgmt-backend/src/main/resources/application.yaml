@@ -2,9 +2,9 @@ spring:
   application:
     name: chef-mgmt-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/chef_mgmt_db
+    url: jdbc:postgresql://localhost:5432/photo_mgmt_db
     username: postgres
-    password: postgres
+    password: Witcher2003!
   flyway:
     enabled: true
     locations:

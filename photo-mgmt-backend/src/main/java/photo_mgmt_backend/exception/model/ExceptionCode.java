@@ -10,10 +10,20 @@ public enum ExceptionCode {
     VALIDATION_ERROR("Validation failed.", "ERR_1001"),
     CONSTRAINT_VIOLATION("Constraint violation.", "ERR_1002"),
 
-    // Chef Errors
-    CHEF_NOT_FOUND("Chef %s not found.", "ERR_2001"),
+    // Photo Errors
+    PHOTO_NOT_FOUND("Photo %s not found.", "ERR_2001"),
     CNP_TAKEN("CNP %s is already taken.", "ERR_2002"),
 
+    //Album Errors
+    ALBUM_NOT_FOUND("Album %s not found.", "ERR_2001"),
+    ALBUM_NAME_TAKEN("Album name %s is already taken.", "ERR_2002"),
+
+    //Photo Edit errors
+    PHOTO_EDIT_NOT_FOUND("Photo edit %s not found.", "ERR_2001"),
+
+
+    //User Errors
+    USER_NOT_FOUND("User %s not found.", "ERR_2001"),
     // Auth Errors
     INVALID_CREDENTIALS("Invalid credentials.", "ERR_3001"),
     FORBIDDEN_ACCESS("Access is forbidden.", "ERR_3002"),

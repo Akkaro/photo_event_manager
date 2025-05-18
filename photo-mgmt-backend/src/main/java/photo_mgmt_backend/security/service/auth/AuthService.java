@@ -4,5 +4,7 @@ import java.util.UUID;
 
 public interface AuthService {
 
+    String getLoggedUser();
+
     boolean isSelf(UUID userId);
 }
