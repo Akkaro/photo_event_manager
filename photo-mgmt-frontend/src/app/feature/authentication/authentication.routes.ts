@@ -8,6 +8,10 @@ export const routes: Routes = [
     loadComponent: () => import('./login/login.component').then(m => m.LoginComponent)
   },
   {
+    path: ROUTES.REGISTER,
+    loadComponent: () => import('./register/register.component').then(m => m.RegisterComponent)
+  },
+  {
     path: ROUTES.ALL,
     redirectTo: ROUTES.LOGIN
   }
