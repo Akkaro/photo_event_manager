@@ -1,25 +1,8 @@
 # Photo Management Backend
 
-Actual status: I got to make a front end login page which does actually build, and serve. The problem is that I had a lot of errors.
+Actual status: I got to make a front end login page which does actually build, and serve. The login can be made via frontend.
 
-I had to disable the dynamic path generation because in the ROUTES the defined :id parameter throw error on build:
-
-```[ERROR] The 'photos/:id' route uses prerendering and includes parameters, but 'getPrerenderParams' is missing. Please define 'getPrerenderParams' function for this route in your server routing configuration or specify a different 'renderMode'.```
-
-Then I had some CORS errors because of the backend, but I managed to solve them. Thien I got an invalid fetch error because after login the startup page was set to be user/info but I don't have such a page so it crashed. Currently I changed the ngOnInit to be:
-```
-    this.authService.login(credentials)
-      .subscribe({
-        next: () => {
-          this.router.navigateByUrl(ROUTES.PHOTOS).then();
-        },
-        error: (error: HttpErrorResponse) => this.errorMessage = error.error.message
-      });
-```
-
-hoping that I will get to the list of all photos after login. But when pressing the login button nothing happens. On the browser console there is no error message, and the backend shows succesfull login.
-![image](https://github.com/user-attachments/assets/be240a87-8c72-4704-9a37-6ab03c328a42)
-![image](https://github.com/user-attachments/assets/0a31bc53-05ed-4c32-a4ff-b04955814de9)
+Upcomming TO DOs: Make a page listing albums, which can be opened to list photos. For this, the backend support is theoretically already done, frontend support is needed. Once this is done the actual display of the photos can be done. Then comes the editing part.
 
 
 A Spring Boot application for managing photos in albums with user authentication, role-based access control, and basic photo editing capabilities.
@@ -40,3 +23,14 @@ Prompt and result token for login
 
 Front End Login Page
 ![image](https://github.com/user-attachments/assets/b4f9645f-2e51-4cc6-bd22-90deffc539d0)
+
+Welcome Page after login
+![image](https://github.com/user-attachments/assets/24619626-7817-486f-8d3d-6576055b6fd5)
+
+About page for each user
+![image](https://github.com/user-attachments/assets/6a74bc72-bf89-45cb-a513-8496b3c01835)
+
+Page Listing all photos
+![image](https://github.com/user-attachments/assets/43d80066-2bbe-4fa3-bb33-f5dd35867b47)
+
+
