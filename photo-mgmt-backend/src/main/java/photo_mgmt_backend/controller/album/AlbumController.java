@@ -22,6 +22,7 @@ import java.util.UUID;
 
 @RequestMapping("/v1/albums")
 @Tag(name = "Album Management", description = "Operations for managing photo albums")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public interface AlbumController {
 
     @GetMapping

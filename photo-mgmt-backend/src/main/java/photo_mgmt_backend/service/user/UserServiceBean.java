@@ -12,6 +12,7 @@ import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.user.UserFilterDTO;
 import photo_mgmt_backend.model.dto.user.UserRequestDTO;
 import photo_mgmt_backend.model.dto.user.UserResponseDTO;
+import photo_mgmt_backend.model.entity.PhotoEntity;
 import photo_mgmt_backend.model.entity.UserEntity;
 import photo_mgmt_backend.model.mapper.UserMapper;
 import photo_mgmt_backend.repository.user.UserRepository;
@@ -66,6 +67,14 @@ public class UserServiceBean implements UserService {
         userMapper.updateUserEntity(existingUser, userRequestDTO);
         UserEntity updated = userRepository.save(existingUser);
         return userMapper.convertEntityToResponseDto(updated);
+    }
+
+    @Override
+    public UserResponseDTO getUserInfo(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
+
+        return userMapper.convertEntityToResponseDto(user);
     }
 
     @Override
