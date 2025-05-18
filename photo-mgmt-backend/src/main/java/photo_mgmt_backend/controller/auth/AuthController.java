@@ -9,10 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import photo_mgmt_backend.exception.model.ExceptionBody;
 import photo_mgmt_backend.model.dto.auth.LoginRequestDTO;
 import photo_mgmt_backend.model.dto.auth.LoginResponseDTO;
@@ -21,6 +18,7 @@ import photo_mgmt_backend.model.dto.auth.RegisterResponseDTO;
 
 @RequestMapping("/v1/auth")
 @Tag(name = "Authentication", description = "Operations for user authentication and login")
+@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public interface AuthController {
 
     @PostMapping("/login")

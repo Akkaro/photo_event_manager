@@ -82,7 +82,6 @@ public class RegistrationFilter extends OncePerRequestFilter {
 
             // Create new user
             UserEntity user = UserEntity.builder()
-                    .userId(UUID.randomUUID())
                     .email(registerRequest.email())
                     .userName(registerRequest.userName())
                     .passwordHash(passwordEncoder.encode(registerRequest.password()))

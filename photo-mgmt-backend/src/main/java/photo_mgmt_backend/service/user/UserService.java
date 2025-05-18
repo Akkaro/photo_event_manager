@@ -16,6 +16,6 @@ public interface UserService {
     UserResponseDTO save(UserRequestDTO userRequestDTO);
 
     UserResponseDTO update(UUID id, UserRequestDTO userRequestDTO);
-
+    UserResponseDTO getUserInfo(String email);
     void delete(UUID id);
 }

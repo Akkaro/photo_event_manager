@@ -18,6 +18,11 @@ public class AuthServiceBean implements AuthService {
     private final UserRepository userRepository;
 
     @Override
+    public String getLoggedUser() {
+        return (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+    @Override
     public boolean isSelf(UUID userId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserEntity user = userRepository.findByEmail(auth.getName())

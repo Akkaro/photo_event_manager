@@ -19,6 +19,7 @@ import photo_mgmt_backend.security.filter.AuthorizationFilter;
 import photo_mgmt_backend.security.filter.LoginFilter;
 import photo_mgmt_backend.security.filter.RegistrationFilter;
 import photo_mgmt_backend.security.util.SecurityConstants;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -32,21 +33,22 @@ public class SecurityConfig {
             RegistrationFilter registrationFilter,
             AuthorizationFilter authorizationFilter,
             AuthenticationEntryPoint authenticationEntryPoint,
-            AuthenticationManager authenticationManager
+            AuthenticationManager authenticationManager,
+            CorsConfigurationSource corsConfigurationSource
     ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(SecurityConstants.AUTH_PATHS_TO_SKIP).permitAll()
                         .requestMatchers(SecurityConstants.SWAGGER_PATHS_TO_SKIP).permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().permitAll())
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(authenticationEntryPoint))
                 .authenticationManager(authenticationManager)
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(registrationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
