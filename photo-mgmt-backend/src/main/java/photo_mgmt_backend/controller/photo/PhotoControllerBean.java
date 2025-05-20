@@ -1,9 +1,11 @@
 package photo_mgmt_backend.controller.photo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.multipart.MultipartFile;
 import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoFilterDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoRequestDTO;
@@ -43,35 +45,46 @@ public class PhotoControllerBean implements PhotoController {
     }
 
     @Override
-    public PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO) {
-        log.info("[PHOTO] Saving photo: {}", photoRequestDTO);
+    public PhotoResponseDTO save(String photoJson, MultipartFile file) {
+        try {
+            // Convert JSON string to PhotoRequestDTO
+            ObjectMapper objectMapper = new ObjectMapper();
+            PhotoRequestDTO photoRequestDTO = objectMapper.readValue(photoJson, PhotoRequestDTO.class);
 
-        // Get the current authenticated user's username
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+            log.info("[PHOTO] Saving photo: {}", photoRequestDTO);
+            log.info("[PHOTO] File details - Name: {}, Size: {} bytes, Content-Type: {}",
+                    file.getOriginalFilename(), file.getSize(), file.getContentType());
 
-        // Create a filter to find the user by username using the record constructor
-        UserFilterDTO filter = new UserFilterDTO(
-                null,  // userName
-                email,            // email
-                null,            // role
-                null,           //createdAt
-                0,               // pageNumber
-                1                // pageSize - We only need one result
-        );
+            // Get the current authenticated user's username
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
 
-        // Get user from the service
-        CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
+            // Create a filter to find the user by username using the record constructor
+            UserFilterDTO filter = new UserFilterDTO(
+                    null,  // userName
+                    email,            // email
+                    null,            // role
+                    null,           //createdAt
+                    0,               // pageNumber
+                    1                // pageSize - We only need one result
+            );
 
-        // Assuming the username is unique, get the first user's ID
-        if (users.elements().isEmpty()) {
-            throw new UsernameNotFoundException("Current authenticated user not found in database");
+            // Get user from the service
+            CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
+
+            // Assuming the username is unique, get the first user's ID
+            if (users.elements().isEmpty()) {
+                throw new UsernameNotFoundException("Current authenticated user not found in database");
+            }
+
+            UUID ownerId = users.elements().get(0).userId();
+
+            // Pass the owner ID to the service
+            return photoService.save(photoRequestDTO, ownerId, file);
+        } catch (Exception e) {
+            log.error("[PHOTO] Error saving photo: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to process photo upload", e);
         }
-
-        UUID ownerId = users.elements().get(0).userId();
-
-        // Pass the owner ID to the service
-        return photoService.save(photoRequestDTO, ownerId);
     }
 
     @Override

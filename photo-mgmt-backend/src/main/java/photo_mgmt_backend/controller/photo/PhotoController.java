@@ -1,5 +1,6 @@
 package photo_mgmt_backend.controller.photo;
 
+import org.springframework.web.multipart.MultipartFile;
 import photo_mgmt_backend.exception.model.ExceptionBody;
 import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoFilterDTO;
@@ -53,7 +54,7 @@ public interface PhotoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR') or @authService.isSelf(#id)")
     PhotoResponseDTO findById(@PathVariable(name = "id") UUID id);
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload a new photo", description = "Add a new photo with the provided details.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Photo uploaded successfully",
@@ -65,7 +66,7 @@ public interface PhotoController {
     })
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
-    PhotoResponseDTO save(@RequestBody @Valid PhotoRequestDTO photoRequestDTO);
+    PhotoResponseDTO save(@RequestPart("photo") String photoJson, @RequestPart("file") MultipartFile file);
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a photo", description = "Modify an existing photo's details using its ID.")
