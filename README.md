@@ -32,5 +32,3 @@ About page for each user
 
 Page Listing all photos
 ![image](https://github.com/user-attachments/assets/43d80066-2bbe-4fa3-bb33-f5dd35867b47)
-
-
