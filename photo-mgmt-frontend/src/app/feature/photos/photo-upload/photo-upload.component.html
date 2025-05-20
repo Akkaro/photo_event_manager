@@ -1,0 +1,73 @@
+<div class="container py-4">
+  <h2 class="mb-4">Upload New Photo</h2>
+
+  <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()" class="card">
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="photoName" class="form-label">Photo Name</label>
+        <input type="text" id="photoName" class="form-control" formControlName="photoName">
+        @if (uploadForm.get('photoName')?.invalid && uploadForm.get('photoName')?.touched) {
+        <div class="text-danger mt-1">
+          @if (uploadForm.get('photoName')?.errors?.['required']) {
+        Photo name is required.
+        }
+        @if (uploadForm.get('photoName')?.errors?.['minlength']) {
+        Photo name must be at least 3 characters.
+        }
+        </div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label for="albumId" class="form-label">Album</label>
+        <select id="albumId" class="form-select" formControlName="albumId">
+          @if (albums.length === 0) {
+          <option value="" disabled>No albums available</option>
+          } @else {
+          @for (album of albums; track album.albumId) {
+          <option [value]="album.albumId">{{ album.albumName }}</option>
+          }
+          }
+        </select>
+        @if (uploadForm.get('albumId')?.invalid && uploadForm.get('albumId')?.touched) {
+        <div class="text-danger mt-1">
+          Please select an album.
+        </div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label for="photoFile" class="form-label">Photo</label>
+        <input type="file" id="photoFile" class="form-control" accept="image/*" (change)="onFileChanged($event)">
+        @if (!selectedFile && uploadForm.touched) {
+        <div class="text-danger mt-1">
+          Please select a photo to upload.
+        </div>
+        }
+      </div>
+
+      @if (imagePreview) {
+      <div class="mb-3">
+        <label class="form-label">Preview</label>
+        <div class="text-center">
+          <img [src]="imagePreview" class="img-fluid img-thumbnail" style="max-height: 300px;">
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="card-footer d-flex justify-content-between">
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="loading">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="uploadForm.invalid || !selectedFile || loading">
+        @if (loading) {
+        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        Uploading...
+        } @else {
+        <i class="fas fa-cloud-upload-alt"></i> Upload Photo
+        }
+      </button>
+    </div>
+  </form>
+</div>
