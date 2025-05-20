@@ -10,6 +10,7 @@ import { PaginationComponent } from '../../../shared/components/pagination/pagin
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { PhotoResponse } from '../models/photo-response.model';
+import {PhotoFilter} from '../models/photo-filter.model';
 
 
 @Component({
@@ -34,6 +35,7 @@ export class PhotosComponent implements OnInit {
   showAddForm = false;
   currentPage = 0;
   totalPages = -1;
+  currentSearchBy = '';
 
   constructor(
     private photoService: PhotoService,
@@ -44,11 +46,41 @@ export class PhotosComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      const searchBy = params.get('searchBy') ?? '';
+      // Check for direct filter parameters first
+      const albumId = params.get('albumId');
+      const searchBy = params.get('searchBy');
       this.currentPage = +(params.get('page') ?? '0');
-      this.fetchPhotos(searchBy, this.currentPage);
+
+      // If we have a direct albumId parameter, use it directly
+      if (albumId) {
+        const filter: PhotoFilter = {
+          albumId: albumId,
+          pageNumber: this.currentPage,
+          pageSize: 10 // You might want to get this from your apiConfig
+        };
+        this.fetchPhotosWithFilter(filter);
+      } else {
+        // Otherwise use the searchBy parameter as before
+        this.fetchPhotos(searchBy || '', this.currentPage);
+      }
     });
     this.buildPhotoForm();
+  }
+
+  private fetchPhotosWithFilter(filter: PhotoFilter): void {
+    this.loading = true;
+
+    this.photoService.getAll(filter).subscribe({
+      next: (response) => {
+        this.photos = response.elements;
+        this.totalPages = response.totalPages;
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'Failed to load photos';
+        this.loading = false;
+      }
+    });
   }
 
   private fetchPhotos(searchBy: string, page: number): void {
