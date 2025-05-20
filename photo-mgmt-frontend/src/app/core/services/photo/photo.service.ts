@@ -27,8 +27,12 @@ export class PhotoService {
     return this.http.get<PhotoResponse>(`/v1/${ROUTES.PHOTOS}/${photoId}`);
   }
 
-  save(photo: PhotoRequest): Observable<PhotoResponse> {
-    return this.http.post<PhotoResponse>(`/v1/${ROUTES.PHOTOS}`, photo);
+  save(photo: PhotoRequest, file: File): Observable<PhotoResponse> {
+    const formData = new FormData();
+    formData.append('photo', new Blob([JSON.stringify(photo)], { type: 'application/json' }));
+    formData.append('file', file);
+
+    return this.http.post<PhotoResponse>(`/v1/${ROUTES.PHOTOS}`, formData);
   }
 
   update(photoId: string, photo: PhotoRequest): Observable<PhotoResponse> {

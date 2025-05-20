@@ -11,5 +11,6 @@ export enum ROUTES {
   REGISTER = 'register',
   NOT_FOUND = 'not-found',
   PROFILE = 'profile',
-  USERS = 'users'
+  USERS = 'users',
+  UPLOAD = 'upload'
 }
