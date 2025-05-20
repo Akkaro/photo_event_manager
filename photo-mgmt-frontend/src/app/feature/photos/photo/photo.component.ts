@@ -11,6 +11,8 @@ import { ModalService } from '../../../core/services/modal/modal.service';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
+import {AlbumResponse} from '../../albums/models/album-response.model';
+import {AlbumService} from '../../../core/services/album/album.service';
 
 
 @Component({
@@ -32,6 +34,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   userSubscription?: Subscription;
   loggedUser?: UserResponse;
   error: string | null = null;
+  private albums: AlbumResponse[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -39,13 +42,15 @@ export class PhotoComponent implements OnInit, OnDestroy {
     private router: Router,
     private photoService: PhotoService,
     private authService: AuthService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private albumService: AlbumService
   ) { }
 
   ngOnInit(): void {
     this.fetchPhotoId();
     if (this.photoId) {
       this.fetchPhoto();
+      this.fetchAlbums(); // Add this
     } else {
       console.error('PhotoId parameter is missing or invalid');
       this.error = 'Missing or invalid photo ID';
@@ -58,6 +63,22 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.subject$.next();
     this.subject$.complete();
     this.userSubscription?.unsubscribe();
+  }
+
+  private fetchAlbums(): void {
+    this.albumService.getAll().subscribe({
+      next: (response) => {
+        this.albums = response.elements;
+      },
+      error: (error) => {
+        console.error('Error fetching albums:', error);
+      }
+    });
+  }
+
+  getAlbumName(albumId: string): string {
+    const album = this.albums.find(a => a.albumId === albumId);
+    return album ? album.albumName : 'Unknown Album';
   }
 
   private fetchPhotoId(): void {
