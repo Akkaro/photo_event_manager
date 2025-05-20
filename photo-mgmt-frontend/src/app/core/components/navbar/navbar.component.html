@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" routerLink="/">
-      <i class="fas fa-utensils"></i> PhotoApp
+      <i class="fas fa-camera-retro"></i> PhotoApp
     </a>
 
     <div class="collapse navbar-collapse show">
@@ -13,8 +13,8 @@
         </li>
         @if (hasPhotoTablePermission) {
           <li class="nav-item">
-            <a class="nav-link" [routerLink]="ROUTES.PHOTOS">
-              <i class="fas fa-kitchen-set"></i> Photos
+            <a class="nav-link" [routerLink]="ROUTES.ALBUMS">
+              <i class="fas fa-photo-film"></i> My Albums
             </a>
           </li>
         }

@@ -15,6 +15,7 @@ import { Role } from '../../profile/models/user-role.enum';
 
 @Component({
   selector: 'app-photo',
+  standalone: true,
   imports: [
     FormsModule,
     ReactiveFormsModule,
@@ -111,10 +112,10 @@ export class PhotoComponent implements OnInit, OnDestroy {
     } else {
       const updatedPhoto = {
         ...this.photoForm.getRawValue(),
-        birthDate: new Date(this.photoForm.value.birthDate).toISOString()
+        uploadedAt: new Date(this.photoForm.value.uploadedAt).toISOString()
       };
 
-      this.photoService.update(updatedPhoto.id, updatedPhoto).subscribe({
+      this.photoService.update(updatedPhoto.photoId, updatedPhoto).subscribe({
         next: () => {
           this.photoForm.disable();
           this.modalService.open('Success', 'Photo has been successfully updated!', ModalType.SUCCESS);
