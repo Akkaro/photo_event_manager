@@ -3,7 +3,7 @@
   <form [formGroup]="photoForm" class="card mx-auto photo-form">
     <div class="card-header text-center">
       <i class="fas fa-user-tie fa-3x mb-2"></i><br/>
-      <strong>{{ photoForm.get('name')?.value }}</strong>
+      <strong>{{ photoForm.get('photoName')?.value }}</strong>
       </div>
 
       <div class="card-body">
@@ -17,18 +17,25 @@
   </div>
 
   <div class="mb-2">
-    <label class="form-label">photoId:</label>
+    <label class="form-label">Photo ID:</label>
     <input type="text" class="form-control" formControlName="photoId"/>
     @if (photoForm.get('photoId')?.invalid && photoForm.get('photoId')?.touched) {
   <div class="text-danger small">
     @if (photoForm.get('photoId')?.errors?.['required']) {
-    CNP is required.
-    }
-    @if (photoForm.get('photoId')?.errors?.['pattern']) {
-    CNP must contain only digits.
+    Photo ID is required.
     }
   </div>
   }
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Album ID:</label>
+    <input type="text" class="form-control" formControlName="albumId"/>
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Path:</label>
+    <input type="text" class="form-control" formControlName="path"/>
   </div>
 
   <div class="mb-2">
@@ -39,10 +46,20 @@
   }
   </div>
 
+  <div class="mb-2">
+    <label class="form-label">Edited:</label>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" formControlName="isEdited" id="isEditedCheckbox">
+      <label class="form-check-label" for="isEditedCheckbox">
+  {{ photoForm.get('isEdited')?.value ? 'Yes' : 'No' }}
+  </label>
+</div>
+</div>
+
 </div>
 
 <div class="card-footer d-flex justify-content-between">
-  @if (loggedUser?.role == Role.ADMIN) {
+@if (loggedUser?.role == Role.ADMIN) {
   <button (click)="deletePhoto()" class="btn btn-outline-danger" type="button">
     <i class="fas fa-trash"></i>
   </button>
@@ -54,7 +71,9 @@
   }
   </div>
 </form>
+  } @else if (error) {
+  <div class="alert alert-danger text-center mt-4">{{ error }}</div>
   } @else {
-  <div class="alert alert-info text-center mt-4">No photo selected.</div>
+  <div class="alert alert-info text-center mt-4">Loading photo details...</div>
   }
 </div>

@@ -3,6 +3,7 @@ export enum ROUTES {
   ALL = '**',
   AUTH = 'auth',
   PHOTOS = 'photos',
+  ALBUMS = 'albums',
   EMPTY = '',
   FORBIDDEN = 'forbidden',
   ID = ':id',
