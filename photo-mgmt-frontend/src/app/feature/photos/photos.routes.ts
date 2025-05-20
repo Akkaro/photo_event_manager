@@ -13,6 +13,10 @@ export const routes: Routes = [
     }
   },
   {
+    path: ROUTES.UPLOAD,
+    loadComponent: () => import('./photo-upload/photo-upload.component').then(m => m.PhotoUploadComponent),
+  },
+  {
     path: ROUTES.ID,
     loadComponent: () => import('./photo/photo.component').then(m => m.PhotoComponent),
     canActivate: [ hasAuthorization ],
