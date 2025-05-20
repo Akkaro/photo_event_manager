@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import photo_mgmt_backend.exception.model.DataNotFoundException;
 import photo_mgmt_backend.exception.model.ExceptionCode;
 import photo_mgmt_backend.model.dto.CollectionResponseDTO;
@@ -18,6 +19,7 @@ import photo_mgmt_backend.model.mapper.PhotoMapper;
 import photo_mgmt_backend.repository.album.AlbumRepository;
 import photo_mgmt_backend.repository.photo.PhotoRepository;
 import photo_mgmt_backend.repository.photo.PhotoSpec;
+import photo_mgmt_backend.service.cloudinary.CloudinaryService;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -30,6 +32,7 @@ public class PhotoServiceBean implements PhotoService {
     private final AlbumRepository albumRepository;
     private final PhotoSpec photoSpec;
     private final PhotoMapper photoMapper;
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public CollectionResponseDTO<PhotoResponseDTO> findAll(PhotoFilterDTO filter) {
@@ -56,7 +59,7 @@ public class PhotoServiceBean implements PhotoService {
 
     @Override
     @Transactional
-    public PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO, UUID ownerId) {
+    public PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO, UUID ownerId, MultipartFile file) {
         // Verify album exists
         AlbumEntity albumEntity = albumRepository.findById(photoRequestDTO.albumId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
@@ -67,8 +70,8 @@ public class PhotoServiceBean implements PhotoService {
         photoToBeAdded.setUploadedAt(ZonedDateTime.now());
         photoToBeAdded.setIsEdited(false);
 
-        // In a real application, this would handle file storage
-        String path = saveImage(photoRequestDTO.photoName(), ownerId);
+        // Upload image to Cloudinary
+        String path = cloudinaryService.uploadImage(file, ownerId);
         photoToBeAdded.setPath(path);
 
         PhotoEntity photoAdded = photoRepository.save(photoToBeAdded);
@@ -105,22 +108,12 @@ public class PhotoServiceBean implements PhotoService {
         PhotoEntity photoEntity = photoRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id));
 
+        // Delete the image from Cloudinary
+        String publicId = cloudinaryService.extractPublicIdFromUrl(photoEntity.getPath());
+        if (publicId != null) {
+            cloudinaryService.deleteImage(publicId);
+        }
+
         photoRepository.deleteById(photoEntity.getPhotoId());
-
-        // In a real application, this would delete the image file
-        deleteImageFile(photoEntity.getPath());
-    }
-
-    // Helper method for file storage
-    private String saveImage(String photoName, UUID ownerId) {
-        // In a real implementation, this would save the image to storage
-        // For now, just returning a placeholder path
-        return "/images/" + ownerId + "/" + UUID.randomUUID() + "-" + photoName + ".jpg";
-    }
-
-    // Helper method for file deletion
-    private void deleteImageFile(String path) {
-        // In a real implementation, this would delete the image file
-        // This is a placeholder method
     }
 }

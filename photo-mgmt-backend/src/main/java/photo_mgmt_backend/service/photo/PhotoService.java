@@ -1,5 +1,6 @@
 package photo_mgmt_backend.service.photo;
 
+import org.springframework.web.multipart.MultipartFile;
 import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoFilterDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoRequestDTO;
@@ -13,7 +14,7 @@ public interface PhotoService {
 
     PhotoResponseDTO findById(UUID id);
 
-    PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO, UUID ownerId);
+    PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO, UUID ownerId, MultipartFile file);
 
     PhotoResponseDTO update(UUID id, PhotoRequestDTO photoRequestDTO, UUID ownerId);
 

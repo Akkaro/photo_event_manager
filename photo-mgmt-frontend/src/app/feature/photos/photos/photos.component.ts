@@ -36,7 +36,7 @@ export class PhotosComponent implements OnInit {
   currentPage = 0;
   totalPages = -1;
   currentSearchBy = '';
-
+  selectedFile: File | null = null;
   constructor(
     private photoService: PhotoService,
     private fb: FormBuilder,
@@ -112,7 +112,7 @@ export class PhotosComponent implements OnInit {
   }
 
   savePhoto(): void {
-    if (this.addPhotoForm.valid) {
+    if (this.addPhotoForm.valid && this.selectedFile) {  // Add a check for selectedFile
       const newPhoto = {
         ...this.addPhotoForm.value,
         photoId: this.addPhotoForm.value.photoId,
@@ -121,7 +121,7 @@ export class PhotosComponent implements OnInit {
         uploadedAt: new Date(this.addPhotoForm.value.uploadedAt).toISOString(),
         isEdited: this.addPhotoForm.value.isEdited
       };
-      this.photoService.save(newPhoto).subscribe({
+      this.photoService.save(newPhoto, this.selectedFile).subscribe({  // Pass the file here
         next: (savedPhoto) => {
           this.photos.push(savedPhoto);
           this.addPhotoForm.reset();
@@ -132,6 +132,13 @@ export class PhotosComponent implements OnInit {
           this.modalService.open('Error', error.error.message, ModalType.ERROR);
         }
       });
+    }
+  }
+
+  onFileChanged(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
     }
   }
 

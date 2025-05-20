@@ -27,3 +27,7 @@ server:
   port: 8777
   servlet:
     context-path: '/api'
+cloudinary:
+  cloud-name: debuvrlfm
+  api-key: 852454939211447
+  api-secret: YsfLquGg3TQ0VU0s8sdatgrOyVg
