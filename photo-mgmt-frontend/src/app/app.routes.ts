@@ -32,6 +32,15 @@ export const routes: Routes = [
     }
   },
   {
+    path: ROUTES.ALBUMS,
+    loadChildren: () => import('./feature/albums/albums.routes').then(m => m.routes),
+    canActivate: [ isAuthenticated ],
+    data: {
+      authenticated: true,
+      redirectUrl: ROUTES.AUTH
+    }
+  },
+  {
     path: ROUTES.PROFILE,
     loadChildren: () => import('./feature/profile/profile.routes').then(m => m.routes),
     canActivate: [ isAuthenticated ],
