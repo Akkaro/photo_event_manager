@@ -74,7 +74,8 @@ logs/
 spring-boot-starter/
 
 # Secrets
-/application.yaml
+photo-mgmt-backend/src/main/resources/application.yaml
+photo-mgmt-backend/src/main/resources/application.properties
 
 # Other stuff from the folder
 Documentation/
