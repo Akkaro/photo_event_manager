@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(info = @Info(
-        title = "chef-mgmt API",
+        title = "photo-mgmt API",
         version = "1.0",
-        description = "chef-mgmt app endpoints"
+        description = "photo-mgmt app endpoints"
 ))
 public class SwaggerConfig {
 

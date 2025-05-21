@@ -1,0 +1,57 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Photos</h2>
+    <button class="btn btn-primary" [routerLink]="['upload']">
+      <i class="fas fa-plus"></i> Upload New Photo
+    </button>
+  </div>
+
+  <div class="mb-3">
+    <app-search-bar></app-search-bar>
+  </div>
+
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  } @else if (photos.length > 0) {
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    @for (photo of photos; track photo.photoId) {
+  <div class="col">
+    <div class="card h-100">
+      <div class="photo-card-img-container">
+        <img [src]="photo.path" class="card-img-top" [alt]="photo.photoName">
+        @if (photo.isEdited) {
+        <span class="badge bg-success position-absolute top-0 end-0 m-2">Edited</span>
+        }
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">{{ photo.photoName }}</h5>
+        <p class="card-text">
+          <small class="text-muted">Uploaded: {{ photo.uploadedAt | date:'medium' }}</small>
+        </p>
+        <a [routerLink]="[photo.photoId]" class="btn btn-outline-primary btn-sm">View Details</a>
+      </div>
+    </div>
+  </div>
+  }
+  </div>
+  } @else {
+  <div class="alert alert-info text-center mt-4">
+    <p>No photos available.</p>
+    <button class="btn btn-primary" [routerLink]="['upload']">
+      <i class="fas fa-upload"></i> Upload Your First Photo
+    </button>
+  </div>
+  }
+</div>
+
+@if (totalPages > 1) {
+<app-pagination
+[currentPage]="currentPage"
+[totalPages]="totalPages"
+(pageChange)="onPageChange($event)"
+></app-pagination>
+}

@@ -1,7 +1,5 @@
 package photo_mgmt_backend.security.filter;
 
-import en.sd.chefmgmt.security.util.SecurityProperties;
-import en.sd.chefmgmt.security.util.SecurityUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
@@ -17,6 +15,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import photo_mgmt_backend.security.util.SecurityProperties;
+import photo_mgmt_backend.security.util.SecurityUtil;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;

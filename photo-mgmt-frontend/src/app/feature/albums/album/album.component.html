@@ -1,0 +1,60 @@
+<div class="container mt-5">
+  @if (albumForm) {
+  <form [formGroup]="albumForm" class="card mx-auto album-form">
+    <div class="card-header text-center">
+      <i class="fas fa-user-tie fa-3x mb-2"></i><br/>
+      <strong>{{ albumForm.get('name')?.value }}</strong>
+      </div>
+
+      <div class="card-body">
+
+        <div class="mb-2">
+          <label class="form-label">Name:</label>
+          <input type="text" class="form-control" formControlName="albumName"/>
+          @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
+  <div class="text-danger small">Name is required.</div>
+  }
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">albumId:</label>
+    <input type="text" class="form-control" formControlName="albumId"/>
+    @if (albumForm.get('albumId')?.invalid && albumForm.get('albumId')?.touched) {
+  <div class="text-danger small">
+    @if (albumForm.get('albumId')?.errors?.['required']) {
+    CNP is required.
+    }
+    @if (albumForm.get('albumId')?.errors?.['pattern']) {
+    CNP must contain only digits.
+    }
+  </div>
+  }
+  </div>
+
+  <div class="mb-2">
+    <label class="form-label">Creation Date:</label>
+    <input type="date" class="form-control" formControlName="uploadedAt"/>
+    @if (albumForm.get('createdAt')?.invalid && albumForm.get('createdAt')?.touched) {
+  <div class="text-danger small">Upload date is required.</div>
+  }
+  </div>
+
+</div>
+
+<div class="card-footer d-flex justify-content-between">
+  @if (loggedUser?.role == Role.ADMIN) {
+  <button (click)="deleteAlbum()" class="btn btn-outline-danger" type="button">
+    <i class="fas fa-trash"></i>
+  </button>
+  }
+  @if (loggedUser?.role == Role.ADMIN || loggedUser?.role == Role.MODERATOR) {
+  <button (click)="toggleEdit()" [disabled]="albumForm.invalid" class="btn btn-outline-primary" type="button">
+    <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i>
+  </button>
+  }
+  </div>
+</form>
+  } @else {
+  <div class="alert alert-info text-center mt-4">No album selected.</div>
+  }
+</div>
