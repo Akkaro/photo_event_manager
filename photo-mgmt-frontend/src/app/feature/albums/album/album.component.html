@@ -78,15 +78,6 @@
 </div>
 </form>
 
-<div class="alert alert-info">
-  <strong>Debug Info:</strong><br>
-  loggedUser?.role: {{ loggedUser?.role }}<br>
-  Role.ADMIN: {{ Role.ADMIN }}<br>
-  isOwner: {{ isOwner }}<br>
-  loggedUser?.userId: {{ loggedUser?.userId }}<br>
-  album ownerId: {{ albumForm.get('ownerId')?.value }}
-  </div>
-
   @if (isOwner) {
   <app-album-share
     [albumId]="albumId"
