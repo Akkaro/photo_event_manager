@@ -11,6 +11,7 @@ import { ModalService } from '../../../core/services/modal/modal.service';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
+import {AlbumShareComponent} from '../../album-shares/album-share/album-share.component';
 
 
 @Component({
@@ -20,7 +21,8 @@ import { Role } from '../../profile/models/user-role.enum';
     FormsModule,
     ReactiveFormsModule,
     NgClass,
-    RouterLink
+    RouterLink,
+    AlbumShareComponent
   ],
   templateUrl: './album.component.html',
   styleUrl: './album.component.scss'
@@ -35,6 +37,7 @@ export class AlbumComponent implements OnInit, OnDestroy {
   isOwner = false;
   loading = false;
   error: string | null = null;
+  showShareModal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -100,6 +103,7 @@ export class AlbumComponent implements OnInit, OnDestroy {
         // Check if logged user is the owner of this album
         if (this.loggedUser) {
           this.isOwner = this.loggedUser.userId === album.ownerId;
+          console.log('Setting isOwner:', this.isOwner, 'loggedUser.userId:', this.loggedUser.userId, 'album.ownerId:', album.ownerId);
         }
 
         this.loading = false;
@@ -107,7 +111,6 @@ export class AlbumComponent implements OnInit, OnDestroy {
       error: (error: HttpErrorResponse) => {
         this.error = error.error?.message || 'Failed to load album';
         this.loading = false;
-        // Fix: Use a non-null string for the error message
         this.modalService.open('Error', error.error?.message || 'Failed to load album', ModalType.ERROR);
       }
     });
@@ -117,9 +120,12 @@ export class AlbumComponent implements OnInit, OnDestroy {
     this.userSubscription = this.authService.user$
       .subscribe(response => {
         this.loggedUser = response;
+        console.log('User changed:', this.loggedUser);
+
         // If we already have album data, check ownership
         if (this.albumForm && this.albumForm.get('ownerId')?.value) {
           this.isOwner = this.loggedUser?.userId === this.albumForm.get('ownerId')?.value;
+          console.log('Updated isOwner after user change:', this.isOwner);
         }
       });
   }
@@ -174,6 +180,10 @@ export class AlbumComponent implements OnInit, OnDestroy {
           }
         });
       });
+  }
+
+  toggleShareModal(): void {
+    this.showShareModal = !this.showShareModal;
   }
 
   protected readonly Role = Role;

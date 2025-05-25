@@ -17,15 +17,16 @@ import photo_mgmt_backend.model.dto.album.AlbumFilterDTO;
 import photo_mgmt_backend.model.dto.album.AlbumRequestDTO;
 import photo_mgmt_backend.model.dto.album.AlbumResponseDTO;
 import photo_mgmt_backend.model.entity.AlbumEntity;
+import photo_mgmt_backend.model.entity.AlbumShareEntity;
 import photo_mgmt_backend.model.entity.UserEntity;
 import photo_mgmt_backend.model.mapper.AlbumMapper;
 import photo_mgmt_backend.repository.album.AlbumRepository;
 import photo_mgmt_backend.repository.album.AlbumSpec;
+import photo_mgmt_backend.repository.album_share.AlbumShareRepository;
 import photo_mgmt_backend.repository.user.UserRepository;
 
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -33,54 +34,52 @@ import java.util.UUID;
 public class AlbumServiceBean implements AlbumService {
 
     private final AlbumRepository albumRepository;
+    private final AlbumShareRepository albumShareRepository;
     private final AlbumSpec albumSpec;
     private final AlbumMapper albumMapper;
     private final UserRepository userRepository;
 
     @Override
     public CollectionResponseDTO<AlbumResponseDTO> findAll(AlbumFilterDTO filter) {
-        // Get the current authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // Check if user is ADMIN or MODERATOR - they can see all albums
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
-        // For regular users, we need to filter by their own ID
         if (!isAdminOrModerator) {
-            // Find the current user by email
             String email = authentication.getName();
-            log.info("[ALBUM] Finding albums for user email: {}", email);
-
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            log.info("[ALBUM] Found user with ID: {}", currentUser.getUserId());
+            // Get albums owned by user
+            List<AlbumEntity> ownedAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
 
-            // For regular users, fetch only their albums directly from the repository
-            List<AlbumEntity> userAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
+            // Get albums shared with user
+            List<AlbumShareEntity> sharedAlbums = albumShareRepository.findBySharedWithUserId(currentUser.getUserId());
+            List<AlbumEntity> sharedAlbumEntities = sharedAlbums.stream()
+                    .map(AlbumShareEntity::getAlbum)
+                    .toList();
 
-            // Manually create the pagination result
+            // Combine both lists
+            Set<AlbumEntity> allUserAlbums = new HashSet<>();
+            allUserAlbums.addAll(ownedAlbums);
+            allUserAlbums.addAll(sharedAlbumEntities);
+
+            List<AlbumEntity> userAlbumsList = new ArrayList<>(allUserAlbums);
+
+            // Apply pagination
             int startIndex = filter.pageNumber() * filter.pageSize();
-            int endIndex = Math.min(startIndex + filter.pageSize(), userAlbums.size());
+            int endIndex = Math.min(startIndex + filter.pageSize(), userAlbumsList.size());
+            List<AlbumEntity> pagedAlbums = startIndex < userAlbumsList.size() ?
+                    userAlbumsList.subList(startIndex, endIndex) : List.of();
 
-            // Handle potential out of bounds
-            List<AlbumEntity> pagedAlbums =
-                    startIndex < userAlbums.size() ?
-                            userAlbums.subList(startIndex, endIndex) :
-                            List.of();
-
-            log.info("[ALBUM] Found {} albums for user", userAlbums.size());
-
-            // Convert to response DTOs
             List<AlbumResponseDTO> albumDtos = albumMapper.convertEntitiesToResponseDtos(pagedAlbums);
 
-            // Build and return the response
             return CollectionResponseDTO.<AlbumResponseDTO>builder()
                     .pageNumber(filter.pageNumber())
                     .pageSize(filter.pageSize())
-                    .totalPages((int) Math.ceil((double) userAlbums.size() / filter.pageSize()))
-                    .totalElements(userAlbums.size())
+                    .totalPages((int) Math.ceil((double) userAlbumsList.size() / filter.pageSize()))
+                    .totalElements(userAlbumsList.size())
                     .elements(albumDtos)
                     .build();
         }

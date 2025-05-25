@@ -17,18 +17,20 @@ import photo_mgmt_backend.model.dto.photo.PhotoFilterDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoRequestDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoResponseDTO;
 import photo_mgmt_backend.model.entity.AlbumEntity;
+import photo_mgmt_backend.model.entity.AlbumShareEntity;
 import photo_mgmt_backend.model.entity.PhotoEntity;
 import photo_mgmt_backend.model.entity.UserEntity;
 import photo_mgmt_backend.model.mapper.PhotoMapper;
 import photo_mgmt_backend.repository.album.AlbumRepository;
+import photo_mgmt_backend.repository.album_share.AlbumShareRepository;
 import photo_mgmt_backend.repository.photo.PhotoRepository;
 import photo_mgmt_backend.repository.photo.PhotoSpec;
 import photo_mgmt_backend.repository.user.UserRepository;
 import photo_mgmt_backend.service.cloudinary.CloudinaryService;
 
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,6 +39,7 @@ public class PhotoServiceBean implements PhotoService {
 
     private final PhotoRepository photoRepository;
     private final AlbumRepository albumRepository;
+    private final AlbumShareRepository albumShareRepository;
     private final UserRepository userRepository;
     private final PhotoSpec photoSpec;
     private final PhotoMapper photoMapper;
@@ -64,15 +67,21 @@ public class PhotoServiceBean implements PhotoService {
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the album
-            if (!album.getOwnerId().equals(currentUser.getUserId())) {
-                log.warn("[PHOTO] User {} is not the owner of album {}", email, filter.albumId());
-                // Return empty results if user doesn't own the album
+            // Check if user owns the album OR if the album is shared with the user
+            boolean isOwner = album.getOwnerId().equals(currentUser.getUserId());
+            boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
+                    filter.albumId(), currentUser.getUserId());
+
+            if (!isOwner && !isSharedWithUser) {
+                log.warn("[PHOTO] User {} is not the owner of album {} and album is not shared with them",
+                        email, filter.albumId());
+                // Return empty results if user doesn't own the album and it's not shared with them
                 return createEmptyResponse(filter);
             }
 
-            // User does own the album, proceed with filter
-            log.info("[PHOTO] User {} is the owner of album {}, fetching photos", email, filter.albumId());
+            // User owns the album or it's shared with them, proceed with filter
+            log.info("[PHOTO] User {} has access to album {} (owner: {}, shared: {})",
+                    email, filter.albumId(), isOwner, isSharedWithUser);
         }
 
         // For regular users without albumId filter, we need to filter by their albums only
@@ -82,21 +91,28 @@ public class PhotoServiceBean implements PhotoService {
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
             // Get all albums owned by the user
-            List<AlbumEntity> userAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
+            List<AlbumEntity> userOwnedAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
 
-            if (userAlbums.isEmpty()) {
-                log.info("[PHOTO] User {} has no albums, returning empty photo list", email);
+            // Get all albums shared with the user
+            List<AlbumShareEntity> sharedAlbums = albumShareRepository.findBySharedWithUserId(currentUser.getUserId());
+            List<UUID> sharedAlbumIds = sharedAlbums.stream()
+                    .map(AlbumShareEntity::getAlbumId)
+                    .toList();
+
+            if (userOwnedAlbums.isEmpty() && sharedAlbumIds.isEmpty()) {
+                log.info("[PHOTO] User {} has no albums (owned or shared), returning empty photo list", email);
                 return createEmptyResponse(filter);
             }
 
-            // Get all photos from user's albums
-            List<UUID> userAlbumIds = userAlbums.stream().map(AlbumEntity::getAlbumId).toList();
+            // Get all albums the user has access to (owned + shared)
+            Set<UUID> accessibleAlbumIds = new HashSet<>();
+            accessibleAlbumIds.addAll(userOwnedAlbums.stream().map(AlbumEntity::getAlbumId).collect(Collectors.toSet()));
+            accessibleAlbumIds.addAll(sharedAlbumIds);
 
-            // Here we would need to adapt the filter to include only the user's albums
-            // For simplicity, let's just get the photos and do manual paging
+            // Get all photos from accessible albums
             List<PhotoEntity> userPhotos = photoRepository.findAll().stream()
-                    .filter(photo -> userAlbumIds.contains(photo.getAlbumId()))
-                    .toList();
+                    .filter(photo -> accessibleAlbumIds.contains(photo.getAlbumId()))
+                    .collect(Collectors.toList());
 
             // Manual pagination
             int startIndex = filter.pageNumber() * filter.pageSize();
@@ -107,7 +123,8 @@ public class PhotoServiceBean implements PhotoService {
                             userPhotos.subList(startIndex, endIndex) :
                             List.of();
 
-            log.info("[PHOTO] Found {} photos for user {}", userPhotos.size(), email);
+            log.info("[PHOTO] Found {} photos for user {} (from {} accessible albums)",
+                    userPhotos.size(), email, accessibleAlbumIds.size());
 
             // Convert to response DTOs
             List<PhotoResponseDTO> photoDtos = photoMapper.convertEntitiesToResponseDtos(pagedPhotos);
@@ -185,13 +202,25 @@ public class PhotoServiceBean implements PhotoService {
         AlbumEntity albumEntity = albumRepository.findById(photoRequestDTO.albumId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
-        // Verify user has permission (admin/moderator or owner of the album)
+        // Verify user has permission (admin/moderator, owner of the album, OR album is shared with user)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
-        if (!isAdminOrModerator && !albumEntity.getOwnerId().equals(ownerId)) {
-            throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId());
+        if (!isAdminOrModerator) {
+            // For regular users, check if they own the album OR if it's shared with them
+            boolean isOwner = albumEntity.getOwnerId().equals(ownerId);
+            boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
+                    photoRequestDTO.albumId(), ownerId);
+
+            if (!isOwner && !isSharedWithUser) {
+                log.warn("[PHOTO] User {} tried to upload to album {} but doesn't own it and it's not shared with them",
+                        ownerId, photoRequestDTO.albumId());
+                throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId());
+            }
+
+            log.info("[PHOTO] User {} has permission to upload to album {} (owner: {}, shared: {})",
+                    ownerId, photoRequestDTO.albumId(), isOwner, isSharedWithUser);
         }
 
         PhotoEntity photoToBeAdded = photoMapper.convertRequestDtoToEntity(photoRequestDTO);
