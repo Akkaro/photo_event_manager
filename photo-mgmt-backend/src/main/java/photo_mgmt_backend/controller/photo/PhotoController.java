@@ -18,6 +18,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import photo_mgmt_backend.model.dto.photo_edit.PhotoEditRequestDTO;
+import photo_mgmt_backend.model.dto.photo_edit.PhotoEditResponseDTO;
 
 import java.util.UUID;
 
@@ -98,4 +100,22 @@ public interface PhotoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")
     void delete(@PathVariable(name = "id") UUID id);
+
+    @PostMapping("/{id}/edit")
+    @Operation(summary = "Edit a photo", description = "Apply brightness and contrast adjustments to a photo.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Photo edited successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PhotoEditResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Photo not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request body",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editPhoto(@PathVariable(name = "id") UUID photoId,
+                                   @RequestBody @Valid PhotoEditRequestDTO editRequest);
 }

@@ -78,4 +78,24 @@ public class CloudinaryServiceBean implements CloudinaryService {
 
         return part;
     }
+
+    @Override
+    public String uploadEditedImage(byte[] imageBytes, UUID ownerId) {
+        try {
+            String folder = "photos/" + ownerId + "/edited";
+
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(
+                    imageBytes,
+                    ObjectUtils.asMap(
+                            "folder", folder,
+                            "resource_type", "auto"
+                    )
+            );
+
+            return (String) uploadResult.get("secure_url");
+        } catch (IOException e) {
+            log.error("Failed to upload edited image to Cloudinary", e);
+            throw new RuntimeException("Image upload failed", e);
+        }
+    }
 }

@@ -29,4 +29,6 @@ public interface CloudinaryService {
      * @return The public ID
      */
     String extractPublicIdFromUrl(String url);
+
+    String uploadEditedImage(byte[] imageBytes, UUID ownerId);
 }

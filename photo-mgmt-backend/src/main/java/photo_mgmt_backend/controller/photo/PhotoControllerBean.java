@@ -10,6 +10,8 @@ import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoFilterDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoRequestDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoResponseDTO;
+import photo_mgmt_backend.model.dto.photo_edit.PhotoEditRequestDTO;
+import photo_mgmt_backend.model.dto.photo_edit.PhotoEditResponseDTO;
 import photo_mgmt_backend.model.dto.user.UserFilterDTO;
 import photo_mgmt_backend.model.dto.user.UserRequestDTO;
 import photo_mgmt_backend.model.dto.user.UserResponseDTO;
@@ -18,6 +20,8 @@ import photo_mgmt_backend.service.photo.PhotoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
+import photo_mgmt_backend.service.photo_edit.PhotoEditService;
+import photo_mgmt_backend.service.photo_edit.PhotoEditServiceBean;
 import photo_mgmt_backend.service.user.UserService;
 
 import java.util.UUID;
@@ -29,6 +33,7 @@ public class PhotoControllerBean implements PhotoController {
 
     private final PhotoService photoService;
     private final UserService userService;
+    private final PhotoEditService photoEditService;
 
     @Override
     public CollectionResponseDTO<PhotoResponseDTO> findAll(PhotoFilterDTO photoFilterDTO) {
@@ -123,5 +128,42 @@ public class PhotoControllerBean implements PhotoController {
         log.info("[PHOTO] Deleting photo: {}", id);
 
         photoService.delete(id);
+    }
+
+    @Override
+    public PhotoEditResponseDTO editPhoto(UUID photoId, PhotoEditRequestDTO editRequest) {
+        log.info("[PHOTO] Editing photo: {}", photoId);
+
+        // Get the current authenticated user's email
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        // Create a filter to find the user by email
+        UserFilterDTO filter = new UserFilterDTO(
+                null,     // userName
+                email,    // email
+                null,     // role
+                null,     // createdAt
+                0,        // pageNumber
+                1         // pageSize
+        );
+
+        // Get user from the service
+        CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
+
+        if (users.elements().isEmpty()) {
+            throw new UsernameNotFoundException("Current authenticated user not found in database");
+        }
+
+        UUID ownerId = users.elements().get(0).userId();
+
+        // Set the photoId in the edit request
+        PhotoEditRequestDTO editRequestWithPhotoId = new PhotoEditRequestDTO(
+                photoId,
+                editRequest.brightness(),
+                editRequest.contrast()
+        );
+
+        return photoEditService.save(editRequestWithPhotoId, ownerId);
     }
 }
