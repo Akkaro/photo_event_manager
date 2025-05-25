@@ -1,21 +1,35 @@
 <div class="container py-4">
-  <h2 class="mb-4">Albums</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Albums</h2>
+    <button class="btn btn-primary" (click)="createNewAlbum()">
+      <i class="fas fa-plus"></i> Create New Album
+    </button>
+  </div>
 
   <div class="mb-3">
     <app-search-bar></app-search-bar>
   </div>
 
-  @if (albums.length > 0) {
-  <table class="table table-hover table-striped">
-    <thead class="table-dark">
-    <tr>
-      <th>Album Name</th>
-      <th>Owner</th>
-      <th>Created At</th>
-    </tr>
-    </thead>
-    <tbody>
-      @for (album of albums; track album.albumId) {
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  } @else if (albums.length > 0) {
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-hover table-striped mb-0">
+        <thead class="table-dark">
+        <tr>
+          <th>Album Name</th>
+          <th>Owner</th>
+          <th>Created At</th>
+          <th class="text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (album of albums; track album.albumId) {
   <tr>
     <td>
       <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="text-primary">
@@ -24,12 +38,31 @@
     </td>
     <td>{{ album.ownerName }}</td>
     <td>{{ album.createdAt | date:'medium' }}</td>
+    <td class="text-center">
+      <div class="btn-group">
+        <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-images"></i> View Photos
+        </a>
+        @if (loggedUser?.role === Role.ADMIN || (loggedUser?.userId === album.ownerId)) {
+        <a [routerLink]="[album.albumId]" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        }
+      </div>
+    </td>
   </tr>
   }
   </tbody>
 </table>
+</div>
+</div>
   } @else {
-  <div class="alert alert-info text-center mt-4">No albums available.</div>
+  <div class="alert alert-info text-center mt-4">
+    <p>No albums available.</p>
+    <button class="btn btn-primary" (click)="createNewAlbum()">
+      <i class="fas fa-plus"></i> Create Your First Album
+    </button>
+  </div>
   }
 </div>
 
