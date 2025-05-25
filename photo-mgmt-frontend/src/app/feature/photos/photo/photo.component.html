@@ -53,11 +53,9 @@
     <i class="fas fa-trash"></i> Delete
   </button>
   }
-  @if (loggedUser?.role == Role.ADMIN || loggedUser?.role == Role.MODERATOR) {
   <button (click)="toggleEdit()" [disabled]="photoForm.invalid" class="btn btn-outline-primary" type="button">
     <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit' }}
   </button>
-  }
   </div>
 </form>
 </div>
