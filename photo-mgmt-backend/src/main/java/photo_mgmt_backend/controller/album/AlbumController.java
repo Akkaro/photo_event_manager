@@ -36,7 +36,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    @PreAuthorize("isAuthenticated()")
     CollectionResponseDTO<AlbumResponseDTO> findAll(@Validated AlbumFilterDTO albumFilterDTO);
 
     @GetMapping("/{id}")
@@ -50,7 +50,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     AlbumResponseDTO findById(@PathVariable(name = "id") UUID id);
 
     @PostMapping
@@ -81,7 +81,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     AlbumResponseDTO update(@PathVariable(name = "id") UUID id, @RequestBody @Valid AlbumRequestDTO albumRequestDTO);
 
     @DeleteMapping("/{id}")
@@ -95,6 +95,6 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     void delete(@PathVariable(name = "id") UUID id);
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PhotoService } from '../../../core/services/photo/photo.service';
 import { AlbumService } from '../../../core/services/album/album.service';
 import { ModalService } from '../../../core/services/modal/modal.service';
@@ -25,16 +25,23 @@ export class PhotoUploadComponent implements OnInit {
   imagePreview: string | null = null;
   albums: AlbumResponse[] = [];
   loading = false;
+  preselectedAlbumId: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private photoService: PhotoService,
     private albumService: AlbumService,
     private modalService: ModalService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
+    // Check for album ID in query params
+    this.route.queryParamMap.subscribe(params => {
+      this.preselectedAlbumId = params.get('albumId');
+    });
+
     this.buildForm();
     this.loadAlbums();
   }
@@ -42,7 +49,7 @@ export class PhotoUploadComponent implements OnInit {
   private buildForm(): void {
     this.uploadForm = this.fb.group({
       photoName: ['', [Validators.required, Validators.minLength(3)]],
-      albumId: ['', [Validators.required]]
+      albumId: [this.preselectedAlbumId || '', [Validators.required]]
     });
   }
 
@@ -50,9 +57,14 @@ export class PhotoUploadComponent implements OnInit {
     this.albumService.getAll().subscribe({
       next: (response) => {
         this.albums = response.elements;
-        // Set default selected album if available
-        if (this.albums.length > 0) {
+
+        // If we have albums but no preselected album, set the first one as default
+        if (this.albums.length > 0 && !this.preselectedAlbumId) {
           this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
+        }
+        // If we have a preselected album ID, make sure it's set in the form
+        else if (this.preselectedAlbumId) {
+          this.uploadForm.get('albumId')?.setValue(this.preselectedAlbumId);
         }
       },
       error: (error) => {
@@ -93,7 +105,15 @@ export class PhotoUploadComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         this.modalService.open('Success', 'Photo uploaded successfully!', ModalType.SUCCESS);
-        this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+
+        // If we came from an album, go back to that album's photos
+        if (this.preselectedAlbumId) {
+          this.router.navigate([`/${ROUTES.PHOTOS}`], {
+            queryParams: { albumId: this.preselectedAlbumId }
+          });
+        } else {
+          this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+        }
       },
       error: (error) => {
         this.loading = false;
@@ -104,6 +124,13 @@ export class PhotoUploadComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+    // If we came from an album, go back to that album
+    if (this.preselectedAlbumId) {
+      this.router.navigate([`/${ROUTES.PHOTOS}`], {
+        queryParams: { albumId: this.preselectedAlbumId }
+      });
+    } else {
+      this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+    }
   }
 }
