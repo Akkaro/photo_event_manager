@@ -1,0 +1,94 @@
+<!-- photo-mgmt-frontend/src/app/feature/albums/album-share/album-share.component.html -->
+@if (show) {
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header bg-info text-white">
+<h5 class="modal-title">
+<i class="fas fa-share"></i> Share Album
+</h5>
+<button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body">
+@if (isOwner) {
+<!-- Share form -->
+<div class="mb-4">
+  <h6>Share with a new user:</h6>
+  <form [formGroup]="shareForm" (ngSubmit)="shareAlbum()">
+    <div class="input-group">
+      <input
+        type="email"
+        class="form-control"
+        formControlName="userEmail"
+        placeholder="Enter user email to share with">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="shareForm.invalid || sharingInProgress">
+        @if (sharingInProgress) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        <i class="fas fa-share"></i> Share
+      </button>
+    </div>
+    @if (shareForm.get('userEmail')?.invalid && shareForm.get('userEmail')?.touched) {
+    <div class="text-danger mt-1 small">
+      Please enter a valid email address.
+    </div>
+    }
+  </form>
+</div>
+
+<!-- Current shares -->
+<hr>
+<h6>Currently shared with:</h6>
+
+@if (loading) {
+<div class="text-center">
+<div class="spinner-border spinner-border-sm" role="status"></div>
+<span class="ms-2">Loading shares...</span>
+</div>
+} @else if (shares.length > 0) {
+<div class="list-group">
+@for (share of shares; track share.albumShareId) {
+<div class="list-group-item d-flex justify-content-between align-items-center">
+  <div>
+    <div class="fw-bold">{{ share.sharedWithUserName }}</div>
+    <small class="text-muted">{{ share.sharedWithUserEmail }}</small>
+    <br>
+    <small class="text-muted">Shared on {{ share.sharedAt | date:'medium' }}</small>
+  </div>
+  <button
+    class="btn btn-outline-danger btn-sm"
+    (click)="unshareAlbum(share.sharedWithUserEmail)"
+    title="Remove access">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+}
+</div>
+} @else {
+<div class="alert alert-info">
+<i class="fas fa-info-circle"></i>
+This album is not shared with anyone yet.
+</div>
+}
+} @else {
+<div class="alert alert-info">
+  <i class="fas fa-info-circle"></i>
+  This album has been shared with you. Only the owner can manage sharing settings.
+</div>
+}
+</div>
+
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" (click)="closeModal()">
+Close
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="modal-backdrop fade show"></div>
+}

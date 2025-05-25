@@ -91,24 +91,24 @@ public class PhotoControllerBean implements PhotoController {
     public PhotoResponseDTO update(UUID id, PhotoRequestDTO photoRequestDTO) {
         log.info("[PHOTO] Updating photo: {}", id);
 
-        // Get the current authenticated user's username
+        // Get the current authenticated user's email (not username!)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
+        String email = authentication.getName(); // ← Change this from currentUsername to email
 
-        // Create a filter to find the user by username using the record constructor
+        // Create a filter to find the user by email (not username!)
         UserFilterDTO filter = new UserFilterDTO(
-                currentUsername,  // userName
-                null,            // email
-                null,            // role
-                null,           //createdAt
-                0,               // pageNumber
-                1                // pageSize - We only need one result
+                null,     // userName ← Change this from currentUsername to null
+                email,    // email ← Use email here
+                null,     // role
+                null,     // createdAt
+                0,        // pageNumber
+                1         // pageSize - We only need one result
         );
 
         // Get user from the service
         CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
 
-        // Assuming the username is unique, get the first user's ID
+        // Assuming the email is unique, get the first user's ID
         if (users.elements().isEmpty()) {
             throw new UsernameNotFoundException("Current authenticated user not found in database");
         }

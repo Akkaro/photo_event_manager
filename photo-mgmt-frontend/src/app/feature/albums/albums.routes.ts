@@ -25,7 +25,7 @@ export const routes: Routes = [
     loadComponent: () => import('./album/album.component').then(m => m.AlbumComponent),
     canActivate: [ hasAuthorization ],
     data: {
-      requiredRoles: [ 'ADMIN', 'MODERATOR' ],
+      requiredRoles: [ 'ADMIN', 'MODERATOR', 'USER' ],
       isSelf: true
     },
     providers: [
