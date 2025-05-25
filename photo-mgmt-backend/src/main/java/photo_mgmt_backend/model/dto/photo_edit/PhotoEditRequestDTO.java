@@ -1,12 +1,13 @@
 package photo_mgmt_backend.model.dto.photo_edit;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PhotoEditRequestDTO(
-        @Min(value = 0, message = "Photo ID must be at least 0.")
+        @NotNull(message = "Photo ID is required.")
         UUID photoId,
         BigDecimal brightness,
         BigDecimal contrast

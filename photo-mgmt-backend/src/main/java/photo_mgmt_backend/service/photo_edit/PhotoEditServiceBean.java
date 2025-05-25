@@ -141,13 +141,12 @@ public class PhotoEditServiceBean implements PhotoEditService {
 
     private String applyPhotoEdits(String originalImagePath, PhotoEditRequestDTO editRequest) throws IOException {
         String editedImagePath = originalImagePath.replace("_original.jpg", "_edited.jpg");
-
         ProcessBuilder pb = new ProcessBuilder(
-                Paths.get(editingToolsPath, "photo_editor.exe").toString(),  // or "photo_editor.exe"
+                Paths.get(editingToolsPath, "OpenCVApplication.exe").toString(),
                 originalImagePath,
                 editedImagePath,
                 "combined",
-                String.valueOf(editRequest.brightness() != null ? editRequest.brightness().intValue() : 0),
+                String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 1.0),
                 String.valueOf(editRequest.contrast() != null ? editRequest.contrast().doubleValue() : 1.0)
         );
 
