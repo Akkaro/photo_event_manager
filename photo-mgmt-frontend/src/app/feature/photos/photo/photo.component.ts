@@ -128,6 +128,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
             [ Validators.required ]
           ]
         });
+        this.photoForm.disable();
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error fetching photo:', error);
@@ -143,7 +144,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit(): void {
-    if (this.photoForm.invalid) {
+    if (this.editMode && this.photoForm.invalid) {
       this.photoForm.markAllAsTouched();
       return;
     }
@@ -151,21 +152,26 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
 
     if (this.editMode) {
-      this.photoForm.enable();
-      this.photoForm.get('photoId')?.disable();
+      // Enable only the fields that should be editable
+      this.photoForm.get('photoName')?.enable();
+      // Add other fields you want to be editable
     } else {
+      // Save changes
       const updatedPhoto = {
-        ...this.photoForm.getRawValue(),
-        uploadedAt: new Date(this.photoForm.value.uploadedAt).toISOString()
+        photoName: this.photoForm.get('photoName')?.value,
+        albumId: this.photoForm.get('albumId')?.value
       };
 
-      this.photoService.update(updatedPhoto.photoId, updatedPhoto).subscribe({
+      this.photoService.update(this.photoId, updatedPhoto).subscribe({
         next: () => {
           this.photoForm.disable();
           this.modalService.open('Success', 'Photo has been successfully updated!', ModalType.SUCCESS);
         },
         error: (error: HttpErrorResponse) => {
-          this.modalService.open('Error', error.error.message, ModalType.ERROR);
+          this.modalService.open('Error', error.error?.message || 'Failed to update photo', ModalType.ERROR);
+          // Re-disable the form
+          this.photoForm.disable();
+          this.editMode = true; // Keep in edit mode so user can try again
         }
       });
     }

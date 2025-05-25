@@ -1,59 +1,93 @@
 <div class="container mt-5">
-  @if (albumForm) {
-  <form [formGroup]="albumForm" class="card mx-auto album-form">
-    <div class="card-header text-center">
-      <i class="fas fa-user-tie fa-3x mb-2"></i><br/>
-      <strong>{{ albumForm.get('name')?.value }}</strong>
-      </div>
-
-      <div class="card-body">
-
-        <div class="mb-2">
-          <label class="form-label">Name:</label>
-          <input type="text" class="form-control" formControlName="albumName"/>
-          @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
-  <div class="text-danger small">Name is required.</div>
-  }
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
   </div>
+  } @else if (error) {
+  <div class="alert alert-danger text-center mt-4">{{ error }}</div>
+  } @else if (albumForm) {
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <form [formGroup]="albumForm" class="card">
+        <div class="card-header text-center">
+          <i class="fas fa-photo-film fa-3x mb-2"></i><br/>
+          <strong>{{ albumForm.get('albumName')?.value }}</strong>
+        </div>
 
-  <div class="mb-2">
-    <label class="form-label">albumId:</label>
-    <input type="text" class="form-control" formControlName="albumId"/>
-    @if (albumForm.get('albumId')?.invalid && albumForm.get('albumId')?.touched) {
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Album Name:</label>
+            <input type="text" class="form-control" formControlName="albumName"/>
+            @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
   <div class="text-danger small">
-    @if (albumForm.get('albumId')?.errors?.['required']) {
-    CNP is required.
+    @if (albumForm.get('albumName')?.errors?.['required']) {
+    Album name is required.
     }
-    @if (albumForm.get('albumId')?.errors?.['pattern']) {
-    CNP must contain only digits.
+    @if (albumForm.get('albumName')?.errors?.['minlength']) {
+    Album name must be at least 2 characters.
+    }
+    @if (albumForm.get('albumName')?.errors?.['maxlength']) {
+    Album name cannot exceed 30 characters.
     }
   </div>
   }
   </div>
 
-  <div class="mb-2">
-    <label class="form-label">Creation Date:</label>
-    <input type="date" class="form-control" formControlName="uploadedAt"/>
-    @if (albumForm.get('createdAt')?.invalid && albumForm.get('createdAt')?.touched) {
-  <div class="text-danger small">Upload date is required.</div>
-  }
+  <div class="mb-3">
+    <label class="form-label">Owner:</label>
+    <input type="text" class="form-control" [value]="albumForm.get('ownerName')?.value" readonly/>
   </div>
 
+  <div class="mb-3">
+    <label class="form-label">Created At:</label>
+    <input type="date" class="form-control" formControlName="createdAt" readonly/>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">QR Code:</label>
+    <input type="text" class="form-control" formControlName="qrCode" readonly/>
+  </div>
 </div>
 
 <div class="card-footer d-flex justify-content-between">
-  @if (loggedUser?.role == Role.ADMIN) {
+  <div class="btn-group">
+    <a [routerLink]="['/photos']" [queryParams]="{albumId: albumForm.get('albumId')?.value}" class="btn btn-outline-primary">
+              <i class="fas fa-images"></i> View Photos
+            </a>
+            <a [routerLink]="['/photos/upload']" [queryParams]="{albumId: albumForm.get('albumId')?.value}" class="btn btn-outline-secondary">
+              <i class="fas fa-upload"></i> Upload Photo
+            </a>
+          </div>
+
+          <div class="btn-group">
+            @if (loggedUser?.role === Role.ADMIN || isOwner) {
   <button (click)="deleteAlbum()" class="btn btn-outline-danger" type="button">
-    <i class="fas fa-trash"></i>
+    <i class="fas fa-trash"></i> Delete
   </button>
-  }
-  @if (loggedUser?.role == Role.ADMIN || loggedUser?.role == Role.MODERATOR) {
-  <button (click)="toggleEdit()" [disabled]="albumForm.invalid" class="btn btn-outline-primary" type="button">
-    <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i>
+  <button (click)="toggleEdit()" [disabled]="albumForm.invalid && editMode" class="btn btn-outline-primary" type="button">
+    <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit' }}
+  </button>
+  <!-- Add Share Button -->
+  <button (click)="toggleShareModal()" class="btn btn-outline-info" type="button">
+    <i class="fas fa-share"></i> Share
   </button>
   }
   </div>
+</div>
 </form>
+
+  @if (isOwner) {
+  <app-album-share
+    [albumId]="albumId"
+    [isOwner]="isOwner"
+    [show]="showShareModal"
+    (close)="showShareModal = false">
+  </app-album-share>
+  }
+  </div>
+</div>
   } @else {
   <div class="alert alert-info text-center mt-4">No album selected.</div>
   }

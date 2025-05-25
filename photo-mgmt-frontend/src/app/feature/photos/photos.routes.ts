@@ -9,7 +9,7 @@ export const routes: Routes = [
     loadComponent: () => import('./photos/photos.component').then(m => m.PhotosComponent),
     canActivate: [ hasAuthorization ],
     data: {
-      requiredRoles: [ 'ADMIN', 'MODERATOR' ]
+      requiredRoles: [ 'ADMIN', 'MODERATOR', 'USER' ]
     }
   },
   {
@@ -21,7 +21,7 @@ export const routes: Routes = [
     loadComponent: () => import('./photo/photo.component').then(m => m.PhotoComponent),
     canActivate: [ hasAuthorization ],
     data: {
-      requiredRoles: [ 'ADMIN', 'MODERATOR' ],
+      requiredRoles: [ 'ADMIN', 'MODERATOR', 'USER' ],
       isSelf: true
     },
     providers: [

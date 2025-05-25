@@ -17,7 +17,11 @@ import photo_mgmt_backend.model.dto.CollectionResponseDTO;
 import photo_mgmt_backend.model.dto.album.AlbumFilterDTO;
 import photo_mgmt_backend.model.dto.album.AlbumRequestDTO;
 import photo_mgmt_backend.model.dto.album.AlbumResponseDTO;
+import photo_mgmt_backend.model.dto.album_share.AlbumShareResponseDTO;
+import photo_mgmt_backend.model.dto.album_share.ShareAlbumRequestDTO;
+import photo_mgmt_backend.model.dto.album_share.UnshareAlbumRequestDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 @RequestMapping("/v1/albums")
@@ -36,7 +40,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    @PreAuthorize("isAuthenticated()")
     CollectionResponseDTO<AlbumResponseDTO> findAll(@Validated AlbumFilterDTO albumFilterDTO);
 
     @GetMapping("/{id}")
@@ -50,7 +54,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     AlbumResponseDTO findById(@PathVariable(name = "id") UUID id);
 
     @PostMapping
@@ -81,7 +85,7 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     AlbumResponseDTO update(@PathVariable(name = "id") UUID id, @RequestBody @Valid AlbumRequestDTO albumRequestDTO);
 
     @DeleteMapping("/{id}")
@@ -95,6 +99,25 @@ public interface AlbumController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isOwner(#id)")
+    @PreAuthorize("isAuthenticated()")
     void delete(@PathVariable(name = "id") UUID id);
+
+    // Add these methods to AlbumController interface
+    @PostMapping("/{albumId}/share")
+    @Operation(summary = "Share album with user")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
+    void shareAlbum(@PathVariable UUID albumId, @RequestBody @Valid ShareAlbumRequestDTO request);
+
+    @DeleteMapping("/{albumId}/unshare")
+    @Operation(summary = "Unshare album with user")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("isAuthenticated()")
+    void unshareAlbum(@PathVariable UUID albumId, @RequestBody @Valid UnshareAlbumRequestDTO request);
+
+    @GetMapping("/{albumId}/shares")
+    @Operation(summary = "Get users album is shared with")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    List<AlbumShareResponseDTO> getAlbumShares(@PathVariable UUID albumId);
 }

@@ -6,5 +6,7 @@ public interface AuthService {
 
     String getLoggedUser();
 
+    boolean isOwner(UUID entityOwnerId);
+
     boolean isSelf(UUID userId);
 }

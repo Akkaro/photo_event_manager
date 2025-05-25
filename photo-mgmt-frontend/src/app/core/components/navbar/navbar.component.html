@@ -11,12 +11,19 @@
             <i class="fas fa-user"></i> Profile
           </a>
         </li>
+        <!-- Show albums link to all users -->
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="ROUTES.ALBUMS">
+            <i class="fas fa-photo-film"></i> Albums
+          </a>
+        </li>
+        <!-- Only show photos management to ADMIN and MODERATOR -->
         @if (hasPhotoTablePermission) {
-          <li class="nav-item">
-            <a class="nav-link" [routerLink]="ROUTES.ALBUMS">
-              <i class="fas fa-photo-film"></i> My Albums
-            </a>
-          </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="ROUTES.PHOTOS">
+            <i class="fas fa-images"></i> All Photos
+          </a>
+        </li>
         }
         <li class="nav-item">
           <a class="nav-link" [routerLink]="ROUTES.ABOUT">

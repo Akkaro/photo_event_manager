@@ -39,7 +39,7 @@
   <div class="mb-2">
     <label class="form-label">Edited:</label>
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" formControlName="isEdited" id="isEditedCheckbox" [disabled]="true">
+      <input class="form-check-input" type="checkbox" formControlName="isEdited" id="isEditedCheckbox">
       <label class="form-check-label" for="isEditedCheckbox">
   {{ photoForm.get('isEdited')?.value ? 'Yes' : 'No' }}
   </label>
@@ -53,11 +53,9 @@
     <i class="fas fa-trash"></i> Delete
   </button>
   }
-  @if (loggedUser?.role == Role.ADMIN || loggedUser?.role == Role.MODERATOR) {
   <button (click)="toggleEdit()" [disabled]="photoForm.invalid" class="btn btn-outline-primary" type="button">
     <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit' }}
   </button>
-  }
   </div>
 </form>
 </div>

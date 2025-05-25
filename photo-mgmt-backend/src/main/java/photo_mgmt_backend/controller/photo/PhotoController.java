@@ -37,7 +37,7 @@ public interface PhotoController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    @PreAuthorize("isAuthenticated()")
     CollectionResponseDTO<PhotoResponseDTO> findAll(@Validated PhotoFilterDTO photoFilterDTO);
 
     @GetMapping("/{id}")
@@ -51,7 +51,7 @@ public interface PhotoController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR') or @authService.isSelf(#id)")
+    @PreAuthorize("isAuthenticated()")
     PhotoResponseDTO findById(@PathVariable(name = "id") UUID id);
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -82,7 +82,7 @@ public interface PhotoController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isSelf(#id)")
+    @PreAuthorize("isAuthenticated()")
     PhotoResponseDTO update(@PathVariable(name = "id") UUID id, @RequestBody @Valid PhotoRequestDTO photoRequestDTO);
 
     @DeleteMapping("/{id}")
@@ -96,6 +96,6 @@ public interface PhotoController {
                             schema = @Schema(implementation = ExceptionBody.class)))
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN') or @authService.isSelf(#id)")
+    @PreAuthorize("isAuthenticated()")
     void delete(@PathVariable(name = "id") UUID id);
 }
