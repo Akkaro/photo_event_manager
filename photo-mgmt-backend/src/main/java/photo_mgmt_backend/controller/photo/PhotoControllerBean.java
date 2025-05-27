@@ -11,6 +11,9 @@ import photo_mgmt_backend.model.dto.photo.PhotoRequestDTO;
 import photo_mgmt_backend.model.dto.photo.PhotoResponseDTO;
 import photo_mgmt_backend.model.dto.photo_edit.PhotoEditRequestDTO;
 import photo_mgmt_backend.model.dto.photo_edit.PhotoEditResponseDTO;
+import photo_mgmt_backend.model.dto.photo_version.PhotoVersionDTO;
+import photo_mgmt_backend.model.dto.photo_version.PhotoVersionHistoryDTO;
+import photo_mgmt_backend.model.dto.photo_version.RevertToVersionRequestDTO;
 import photo_mgmt_backend.model.dto.user.UserFilterDTO;
 import photo_mgmt_backend.model.dto.user.UserResponseDTO;
 import photo_mgmt_backend.service.photo.PhotoService;
@@ -18,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 import photo_mgmt_backend.service.photo_edit.PhotoEditService;
+import photo_mgmt_backend.service.photo_version.PhotoVersionService;
 import photo_mgmt_backend.service.user.UserService;
 
 import java.math.BigDecimal;
@@ -31,6 +35,7 @@ public class PhotoControllerBean implements PhotoController {
     private final PhotoService photoService;
     private final UserService userService;
     private final PhotoEditService photoEditService;
+    private final PhotoVersionService photoVersionService;
 
     @Override
     public CollectionResponseDTO<PhotoResponseDTO> findAll(PhotoFilterDTO photoFilterDTO) {
@@ -250,5 +255,34 @@ public class PhotoControllerBean implements PhotoController {
         }
 
         return users.elements().get(0).userId();
+    }
+
+    @Override
+    public PhotoVersionHistoryDTO getVersionHistory(UUID photoId) {
+        log.info("[PHOTO] Getting version history for photo: {}", photoId);
+        UUID ownerId = getCurrentUserId();
+        return photoVersionService.getVersionHistory(photoId, ownerId);
+    }
+
+    @Override
+    public String getOriginalImageUrl(UUID photoId) {
+        log.info("[PHOTO] Getting original image URL for photo: {}", photoId);
+        UUID ownerId = getCurrentUserId();
+        return photoVersionService.getOriginalImageUrl(photoId, ownerId);
+    }
+
+    @Override
+    public PhotoVersionDTO revertToVersion(UUID photoId, RevertToVersionRequestDTO request) {
+        log.info("[PHOTO] Reverting photo {} to version {}", photoId, request.targetVersion());
+        UUID ownerId = getCurrentUserId();
+
+        // Ensure the photoId in the path matches the one in the request
+        RevertToVersionRequestDTO updatedRequest = new RevertToVersionRequestDTO(
+                photoId,
+                request.targetVersion(),
+                request.reason()
+        );
+
+        return photoVersionService.revertToVersion(updatedRequest, ownerId);
     }
 }

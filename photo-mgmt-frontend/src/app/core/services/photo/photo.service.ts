@@ -7,7 +7,7 @@ import { PhotoResponse } from '../../../feature/photos/models/photo-response.mod
 import { CollectionResponseDTO } from '../../../shared/models/collection-response-dto.model';
 import { ROUTES } from '../../config/routes.enum';
 import { buildPhotoQueryParams } from '../../utils/rest-utils';
-
+import { PhotoVersionHistory, PhotoVersion, RevertToVersionRequest } from '../../../feature/photo-versions/models/photo-version.model';
 
 @Injectable({
   providedIn: 'root'
@@ -41,5 +41,18 @@ export class PhotoService {
 
   delete(photoId: string): Observable<void> {
     return this.http.delete<void>(`/v1/${ROUTES.PHOTOS}/${photoId}`);
+  }
+
+  // NEW: Version management methods
+  getVersionHistory(photoId: string): Observable<PhotoVersionHistory> {
+    return this.http.get<PhotoVersionHistory>(`/v1/${ROUTES.PHOTOS}/${photoId}/versions`);
+  }
+
+  getOriginalImageUrl(photoId: string): Observable<string> {
+    return this.http.get(`/v1/${ROUTES.PHOTOS}/${photoId}/original`, { responseType: 'text' });
+  }
+
+  revertToVersion(photoId: string, request: RevertToVersionRequest): Observable<PhotoVersion> {
+    return this.http.post<PhotoVersion>(`/v1/${ROUTES.PHOTOS}/${photoId}/revert`, request);
   }
 }

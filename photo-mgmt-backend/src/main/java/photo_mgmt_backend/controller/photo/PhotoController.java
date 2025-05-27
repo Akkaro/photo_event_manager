@@ -20,6 +20,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import photo_mgmt_backend.model.dto.photo_edit.PhotoEditRequestDTO;
 import photo_mgmt_backend.model.dto.photo_edit.PhotoEditResponseDTO;
+import photo_mgmt_backend.model.dto.photo_version.PhotoVersionDTO;
+import photo_mgmt_backend.model.dto.photo_version.PhotoVersionHistoryDTO;
+import photo_mgmt_backend.model.dto.photo_version.RevertToVersionRequestDTO;
 
 import java.util.UUID;
 
@@ -203,4 +206,48 @@ public interface PhotoController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("isAuthenticated()")
     PhotoEditResponseDTO editHsvConvert(@PathVariable(name = "id") UUID photoId);
+
+    @GetMapping("/{id}/versions")
+    @Operation(summary = "Get photo version history",
+            description = "Retrieve all versions of a photo including the original and all edits.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Version history retrieved successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PhotoVersionHistoryDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Photo not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoVersionHistoryDTO getVersionHistory(@PathVariable(name = "id") UUID photoId);
+
+    @GetMapping("/{id}/original")
+    @Operation(summary = "Get original image URL",
+            description = "Get the URL of the original, unedited image.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Original image URL retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Photo not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    String getOriginalImageUrl(@PathVariable(name = "id") UUID photoId);
+
+    @PostMapping("/{id}/revert")
+    @Operation(summary = "Revert to specific version",
+            description = "Revert a photo to a specific version (0 = original, 1+ = edit versions).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Photo reverted successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PhotoVersionDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Photo or version not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoVersionDTO revertToVersion(@PathVariable(name = "id") UUID photoId,
+                                    @RequestBody @Valid RevertToVersionRequestDTO request);
 }

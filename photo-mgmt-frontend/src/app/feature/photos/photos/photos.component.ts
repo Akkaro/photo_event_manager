@@ -11,6 +11,8 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { PhotoResponse } from '../models/photo-response.model';
 import {PhotoFilter} from '../models/photo-filter.model';
+import {PhotoVersionHistoryComponent} from '../../photo-versions/photo-version-history/photo-version-history.component';
+import {PhotoVersion} from '../../photo-versions/models/photo-version.model';
 
 
 @Component({
@@ -21,7 +23,8 @@ import {PhotoFilter} from '../models/photo-filter.model';
     ReactiveFormsModule,
     CommonModule,
     SearchBarComponent,
-    PaginationComponent
+    PaginationComponent,
+    PhotoVersionHistoryComponent  // Add this
   ],
   templateUrl: './photos.component.html',
   styleUrl: './photos.component.scss'
@@ -37,6 +40,8 @@ export class PhotosComponent implements OnInit {
   totalPages = -1;
   currentSearchBy = '';
   selectedFile: File | null = null;
+  showVersionHistoryModal = false;
+  selectedPhotoId = '';
   constructor(
     private photoService: PhotoService,
     private fb: FormBuilder,
@@ -133,6 +138,16 @@ export class PhotosComponent implements OnInit {
         }
       });
     }
+  }
+
+  showPhotoVersions(photoId: string): void {
+    this.selectedPhotoId = photoId;
+    this.showVersionHistoryModal = true;
+  }
+
+  onVersionReverted(version: PhotoVersion): void {
+    // Optionally refresh the photos list or show a success message
+    this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
   }
 
   onFileChanged(event: Event): void {

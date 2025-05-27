@@ -13,6 +13,24 @@ public interface PhotoMapper extends DtoMapper<PhotoEntity, PhotoRequestDTO, Pho
     @Override
     PhotoResponseDTO convertEntityToResponseDto(PhotoEntity entity);
 
-    //@Mapping(target = "photoId", ignore = true)
+    @Override
+    @Mapping(target = "photoId", ignore = true)
+    @Mapping(target = "ownerId", ignore = true)
+    @Mapping(target = "path", ignore = true)
+    @Mapping(target = "originalPath", ignore = true)
+    @Mapping(target = "uploadedAt", ignore = true)
+    @Mapping(target = "isEdited", ignore = true)
+    @Mapping(target = "album", ignore = true)
+    @Mapping(target = "owner", ignore = true)
+    PhotoEntity convertRequestDtoToEntity(PhotoRequestDTO requestDto);
+
+    @Mapping(target = "photoId", ignore = true)
+    @Mapping(target = "ownerId", ignore = true)
+    @Mapping(target = "path", ignore = true)
+    @Mapping(target = "originalPath", ignore = true)
+    @Mapping(target = "uploadedAt", ignore = true)
+    @Mapping(target = "isEdited", ignore = true)
+    @Mapping(target = "album", ignore = true)
+    @Mapping(target = "owner", ignore = true)
     void updatePhotoEntity(@MappingTarget PhotoEntity photoEntity, PhotoRequestDTO photoRequestDTO);
 }

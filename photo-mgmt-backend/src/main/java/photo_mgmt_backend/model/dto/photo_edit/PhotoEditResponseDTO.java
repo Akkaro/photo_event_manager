@@ -44,5 +44,10 @@ public record PhotoEditResponseDTO(
         // Combined processing flag
         Boolean combinedProcessing,
 
-        ZonedDateTime editedAt
+        ZonedDateTime editedAt,
+
+        // NEW: Versioning fields
+        Integer versionNumber,
+        String previousVersionUrl,
+        String resultVersionUrl
 ) { }

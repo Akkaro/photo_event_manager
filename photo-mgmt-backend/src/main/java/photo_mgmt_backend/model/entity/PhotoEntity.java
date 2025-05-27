@@ -34,6 +34,9 @@ public class PhotoEntity {
     @Column(name = "path")
     private String path;
 
+    @Column(name = "original_path")
+    private String originalPath;
+
     @Column(name = "uploaded_at")
     private ZonedDateTime uploadedAt;
 

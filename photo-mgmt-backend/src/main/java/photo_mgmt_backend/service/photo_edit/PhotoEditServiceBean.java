@@ -21,6 +21,7 @@ import photo_mgmt_backend.repository.photo.PhotoRepository;
 import photo_mgmt_backend.repository.photo_edit.PhotoEditRepository;
 import photo_mgmt_backend.repository.photo_edit.PhotoEditSpec;
 import photo_mgmt_backend.service.cloudinary.CloudinaryService;
+import photo_mgmt_backend.service.photo_version.PhotoVersionService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -43,6 +44,7 @@ public class PhotoEditServiceBean implements PhotoEditService {
     private final PhotoEditSpec photoEditSpec;
     private final PhotoEditMapper photoEditMapper;
     private final CloudinaryService cloudinaryService;
+    private final PhotoVersionService photoVersionService;
 
     @Value("${photo.editing.tools.path:C:/photo-editing-tools}")
     private String editingToolsPath;
@@ -81,29 +83,47 @@ public class PhotoEditServiceBean implements PhotoEditService {
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, photoEditRequestDTO.photoId()));
 
         try {
-            // Download original image from Cloudinary
-            String originalImagePath = downloadImageFromCloudinary(photoEntity.getPath());
+            // Store current image URL before editing (for version history)
+            String currentImageUrl = photoEntity.getPath();
+
+            // If this is the first edit, set the original path
+            if (photoEntity.getOriginalPath() == null) {
+                photoEntity.setOriginalPath(currentImageUrl);
+            }
+
+            // Download current image from Cloudinary
+            String currentImagePath = downloadImageFromCloudinary(currentImageUrl);
 
             // Apply edits using C++ tools
-            String editedImagePath = applyPhotoEdits(originalImagePath, photoEditRequestDTO);
+            String editedImagePath = applyPhotoEdits(currentImagePath, photoEditRequestDTO);
 
             // Upload edited image back to Cloudinary
             String editedImageUrl = uploadEditedImageToCloudinary(editedImagePath, ownerId);
 
-            // Save edit record
+            // Get next version number
+            Integer nextVersion = photoVersionService.getNextVersionNumber(photoEditRequestDTO.photoId());
+
+            // Save edit record with versioning information
             PhotoEditEntity photoEditToBeAdded = photoEditMapper.convertRequestDtoToEntity(photoEditRequestDTO);
             photoEditToBeAdded.setOwnerId(ownerId);
             photoEditToBeAdded.setEditedAt(ZonedDateTime.now());
 
+            // Set versioning fields
+            photoEditToBeAdded.setVersionNumber(nextVersion);
+            photoEditToBeAdded.setPreviousVersionUrl(currentImageUrl);
+            photoEditToBeAdded.setResultVersionUrl(editedImageUrl);
+
             PhotoEditEntity photoEditAdded = photoEditRepository.save(photoEditToBeAdded);
 
-            // Update the photo's edited status and path
+            // Update the photo's current path and edited status
             photoEntity.setIsEdited(true);
             photoEntity.setPath(editedImageUrl);
             photoRepository.save(photoEntity);
 
             // Clean up temporary files
-            cleanupTempFiles(originalImagePath, editedImagePath);
+            cleanupTempFiles(currentImagePath, editedImagePath);
+
+            log.info("[PHOTO_EDIT] Created version {} for photo {}", nextVersion, photoEditRequestDTO.photoId());
 
             return photoEditMapper.convertEntityToResponseDto(photoEditAdded);
 

@@ -202,13 +202,12 @@ public class PhotoServiceBean implements PhotoService {
         AlbumEntity albumEntity = albumRepository.findById(photoRequestDTO.albumId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
-        // Verify user has permission (admin/moderator, owner of the album, OR album is shared with user)
+        // Verify user has permission (existing permission logic)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
         if (!isAdminOrModerator) {
-            // For regular users, check if they own the album OR if it's shared with them
             boolean isOwner = albumEntity.getOwnerId().equals(ownerId);
             boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
                     photoRequestDTO.albumId(), ownerId);
@@ -230,8 +229,11 @@ public class PhotoServiceBean implements PhotoService {
         photoToBeAdded.setIsEdited(false);
 
         // Upload image to Cloudinary
-        String path = cloudinaryService.uploadImage(file, ownerId);
-        photoToBeAdded.setPath(path);
+        String imagePath = cloudinaryService.uploadImage(file, ownerId);
+        photoToBeAdded.setPath(imagePath);
+
+        // NEW: Set original path same as current path for new uploads
+        photoToBeAdded.setOriginalPath(imagePath);
 
         PhotoEntity photoAdded = photoRepository.save(photoToBeAdded);
         log.info("[PHOTO] Added new photo with ID: {} to album: {}", photoAdded.getPhotoId(), photoRequestDTO.albumId());

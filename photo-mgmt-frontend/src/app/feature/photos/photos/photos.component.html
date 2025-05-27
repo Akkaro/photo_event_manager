@@ -23,16 +23,39 @@
     <div class="card h-100">
       <div class="photo-card-img-container">
         <img [src]="photo.path" class="card-img-top" [alt]="photo.photoName">
+
+        <!-- Enhanced badges -->
+        <div class="position-absolute top-0 end-0 m-2">
+          @if (photo.isEdited) {
+          <span class="badge bg-success me-1">Edited</span>
+          }
+        </div>
+
+        <!-- Version indicator -->
         @if (photo.isEdited) {
-        <span class="badge bg-success position-absolute top-0 end-0 m-2">Edited</span>
+        <div class="position-absolute bottom-0 start-0 m-2">
+          <span class="badge bg-info">
+            <i class="fas fa-history"></i> Has Versions
+          </span>
+        </div>
         }
       </div>
+
       <div class="card-body">
         <h5 class="card-title">{{ photo.photoName }}</h5>
         <p class="card-text">
           <small class="text-muted">Uploaded: {{ photo.uploadedAt | date:'medium' }}</small>
         </p>
-        <a [routerLink]="[photo.photoId]" class="btn btn-outline-primary btn-sm">View Details</a>
+        <div class="d-flex justify-content-between">
+          <a [routerLink]="[photo.photoId]" class="btn btn-outline-primary btn-sm">
+            View Details
+          </a>
+          @if (photo.isEdited) {
+          <button class="btn btn-outline-info btn-sm" (click)="showPhotoVersions(photo.photoId)">
+            <i class="fas fa-history"></i> Versions
+          </button>
+          }
+        </div>
       </div>
     </div>
   </div>
@@ -47,6 +70,14 @@
   </div>
   }
 </div>
+
+<!-- Version History Modal -->
+<app-photo-version-history
+  [photoId]="selectedPhotoId"
+  [show]="showVersionHistoryModal"
+  (close)="showVersionHistoryModal = false"
+  (versionReverted)="onVersionReverted($event)">
+</app-photo-version-history>
 
 @if (totalPages > 1) {
 <app-pagination

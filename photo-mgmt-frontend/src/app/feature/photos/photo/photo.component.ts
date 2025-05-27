@@ -13,6 +13,8 @@ import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
 import { AlbumResponse } from '../../albums/models/album-response.model';
 import { AlbumService } from '../../../core/services/album/album.service';
+import { PhotoVersionHistoryComponent } from '../../photo-versions/photo-version-history/photo-version-history.component';
+import { PhotoVersion } from '../../photo-versions/models/photo-version.model';
 
 @Component({
   selector: 'app-photo',
@@ -20,7 +22,8 @@ import { AlbumService } from '../../../core/services/album/album.service';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgClass
+    NgClass,
+    PhotoVersionHistoryComponent
   ],
   templateUrl: './photo.component.html',
   styleUrl: './photo.component.scss'
@@ -35,6 +38,12 @@ export class PhotoComponent implements OnInit, OnDestroy {
   loggedUser?: UserResponse;
   error: string | null = null;
   private albums: AlbumResponse[] = [];
+
+  // Version history
+  showVersionHistoryModal = false;
+  showingOriginal = false;
+  currentImageUrl = '';
+  originalImageUrl = '';
 
   constructor(
     private fb: FormBuilder,
@@ -118,6 +127,10 @@ export class PhotoComponent implements OnInit, OnDestroy {
             { value: photo.path, disabled: true },
             [ Validators.required ]
           ],
+          originalPath: [
+            { value: photo.originalPath, disabled: true },
+            [ Validators.required ]
+          ],
           isEdited: [
             { value: photo.isEdited, disabled: true },
             [ Validators.required ]
@@ -128,6 +141,11 @@ export class PhotoComponent implements OnInit, OnDestroy {
           ]
         });
         this.photoForm.disable();
+
+        // Set image URLs
+        this.currentImageUrl = photo.path;
+        this.originalImageUrl = photo.originalPath;
+
         this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
@@ -196,6 +214,22 @@ export class PhotoComponent implements OnInit, OnDestroy {
           }
         });
       });
+  }
+
+  // NEW: Version history methods
+  toggleOriginal(): void {
+    this.showingOriginal = !this.showingOriginal;
+    this.currentImageUrl = this.showingOriginal ? this.originalImageUrl : this.photoForm.get('path')?.value;
+  }
+
+  showVersionHistory(): void {
+    this.showVersionHistoryModal = true;
+  }
+
+  onVersionReverted(version: PhotoVersion): void {
+    // Refresh the photo data after version revert
+    this.fetchPhoto();
+    this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
   }
 
   protected readonly Role = Role;

@@ -13,6 +13,8 @@ import { EditOperation, EditCategory } from '../models/edit-operation.model';
 import { EDIT_OPERATIONS } from '../config/edit-operations.config';
 import { ROUTES } from '../../../core/config/routes.enum';
 import {PhotoEditService} from '../../../core/services/photo-edit/photo-edit.service';
+import {PhotoVersionHistoryComponent} from '../../photo-versions/photo-version-history/photo-version-history.component';
+import {PhotoVersion} from '../../photo-versions/models/photo-version.model';
 
 @Component({
   selector: 'app-photo-edit',
@@ -20,7 +22,8 @@ import {PhotoEditService} from '../../../core/services/photo-edit/photo-edit.ser
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    PhotoVersionHistoryComponent  // Add this
   ],
   templateUrl: './photo-edit.component.html',
   styleUrl: './photo-edit.component.scss'
@@ -51,6 +54,7 @@ export class PhotoEditComponent implements OnInit {
 
   // History
   editHistory: PhotoEditResponse[] = [];
+  showVersionHistoryModal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -436,6 +440,19 @@ export class PhotoEditComponent implements OnInit {
     }
 
     return 'Photo Edit';
+  }
+
+  showVersionHistory(): void {
+    this.showVersionHistoryModal = true;
+  }
+
+  onVersionReverted(version: PhotoVersion): void {
+    // Refresh the photo data after version revert
+    this.loadPhoto();
+    this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
+
+    // Update the current preview URL
+    this.currentPreviewUrl = version.imageUrl;
   }
 
   cancel(): void {

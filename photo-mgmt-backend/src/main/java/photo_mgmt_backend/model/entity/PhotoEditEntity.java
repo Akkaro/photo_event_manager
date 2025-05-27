@@ -89,6 +89,16 @@ public class PhotoEditEntity {
     @Column(name = "edited_at")
     private ZonedDateTime editedAt;
 
+    // NEW: Versioning fields
+    @Column(name = "version_number")
+    private Integer versionNumber;
+
+    @Column(name = "previous_version_url")
+    private String previousVersionUrl;
+
+    @Column(name = "result_version_url")
+    private String resultVersionUrl;
+
     @ManyToOne
     @JoinColumn(name = "photo_id", insertable = false, updatable = false)
     private PhotoEntity photo;

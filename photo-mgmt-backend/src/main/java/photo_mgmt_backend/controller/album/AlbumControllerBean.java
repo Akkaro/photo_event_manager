@@ -79,24 +79,24 @@ public class AlbumControllerBean implements AlbumController {
     public AlbumResponseDTO update(UUID id, AlbumRequestDTO albumRequestDTO) {
         log.info("[ALBUM] Updating album: {}", id);
 
-        // Get the current authenticated user's username
+        // Get the current authenticated user's EMAIL (not username)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
+        String email = authentication.getName(); // This returns the email
 
-        // Create a filter to find the user by username using the record constructor
+        // Create a filter to find the user by EMAIL
         UserFilterDTO filter = new UserFilterDTO(
-                currentUsername,  // userName
-                null,            // email
-                null,            // role
-                null,           //createdAt
-                0,               // pageNumber
-                1                // pageSize - We only need one result
+                null,        // userName - set to null
+                email,       // email - use the email from authentication
+                null,        // role
+                null,        // createdAt
+                0,           // pageNumber
+                1            // pageSize - We only need one result
         );
 
         // Get user from the service
         CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
 
-        // Assuming the username is unique, get the first user's ID
+        // Assuming the email is unique, get the first user's ID
         if (users.elements().isEmpty()) {
             throw new UsernameNotFoundException("Current authenticated user not found in database");
         }

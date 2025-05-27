@@ -18,6 +18,9 @@ public interface PhotoEditMapper extends DtoMapper<PhotoEditEntity, PhotoEditReq
     @Mapping(target = "editId", ignore = true)
     @Mapping(target = "ownerId", ignore = true)
     @Mapping(target = "editedAt", ignore = true)
+    @Mapping(target = "versionNumber", ignore = true)
+    @Mapping(target = "previousVersionUrl", ignore = true)
+    @Mapping(target = "resultVersionUrl", ignore = true)
     @Mapping(target = "photo", ignore = true)
     @Mapping(target = "owner", ignore = true)
     PhotoEditEntity convertRequestDtoToEntity(PhotoEditRequestDTO requestDto);
@@ -25,6 +28,9 @@ public interface PhotoEditMapper extends DtoMapper<PhotoEditEntity, PhotoEditReq
     @Mapping(target = "editId", ignore = true)
     @Mapping(target = "ownerId", ignore = true)
     @Mapping(target = "editedAt", ignore = true)
+    @Mapping(target = "versionNumber", ignore = true)
+    @Mapping(target = "previousVersionUrl", ignore = true)
+    @Mapping(target = "resultVersionUrl", ignore = true)
     @Mapping(target = "photo", ignore = true)
     @Mapping(target = "owner", ignore = true)
     void updatePhotoEditEntity(@MappingTarget PhotoEditEntity photoEditEntity, PhotoEditRequestDTO photoEditRequestDTO);
