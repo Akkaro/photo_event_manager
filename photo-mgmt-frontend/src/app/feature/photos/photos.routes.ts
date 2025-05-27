@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { ROUTES } from '../../core/config/routes.enum';
 import { hasAuthorization } from '../../core/guards/authorization/authorization.guard';
 
-
 export const routes: Routes = [
   {
     path: ROUTES.EMPTY,
@@ -18,7 +17,7 @@ export const routes: Routes = [
   },
   {
     path: `${ROUTES.ID}/edit`,
-    loadComponent: () => import('./photo-edit/photo-edit.component').then(m => m.PhotoEditComponent),
+    loadComponent: () => import('../photo-edits/photo-edit/photo-edit.component').then(m => m.PhotoEditComponent),
     canActivate: [ hasAuthorization ],
     data: {
       requiredRoles: [ 'ADMIN', 'MODERATOR', 'USER' ],

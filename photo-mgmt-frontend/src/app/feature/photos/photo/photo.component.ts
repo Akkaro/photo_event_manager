@@ -1,4 +1,3 @@
-// photo-mgmt-frontend/src/app/feature/photos/photo/photo.component.ts
 import { NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
@@ -12,9 +11,8 @@ import { ModalService } from '../../../core/services/modal/modal.service';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
-import {AlbumResponse} from '../../albums/models/album-response.model';
-import {AlbumService} from '../../../core/services/album/album.service';
-
+import { AlbumResponse } from '../../albums/models/album-response.model';
+import { AlbumService } from '../../../core/services/album/album.service';
 
 @Component({
   selector: 'app-photo',
@@ -170,7 +168,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
         error: (error: HttpErrorResponse) => {
           this.modalService.open('Error', error.error?.message || 'Failed to update photo', ModalType.ERROR);
           this.photoForm.disable();
-          this.editMode = true;
+          this.editMode = false;
         }
       });
     }

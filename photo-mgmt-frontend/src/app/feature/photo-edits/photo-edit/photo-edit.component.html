@@ -1,0 +1,414 @@
+<!-- photo-mgmt-frontend/src/app/feature/photo-edits/photo-edit/photo-edit.component.html -->
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+      <i class="fas fa-magic me-2"></i>
+      Enhanced Photo Editor
+    </h2>
+    <button class="btn btn-outline-secondary" (click)="cancel()">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+  </div>
+
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading photo...</p>
+  </div>
+  } @else if (error) {
+  <div class="alert alert-danger text-center mt-4">{{ error }}</div>
+  } @else if (photo) {
+  <div class="row">
+    <!-- Photo Preview Section -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">
+            <i class="fas fa-image"></i> {{ photo.photoName }}
+  </h5>
+  <div class="btn-group btn-group-sm">
+    <button type="button" class="btn btn-outline-secondary" (click)="resetPreview()">
+      <i class="fas fa-undo"></i> Reset
+    </button>
+    <button type="button" class="btn btn-outline-info" (click)="toggleOriginal()">
+      <i class="fas fa-eye"></i> {{ showOriginal ? 'Show Edited' : 'Show Original' }}
+  </button>
+</div>
+</div>
+<div class="card-body p-0">
+<div class="photo-preview-container">
+  <img [src]="currentPreviewUrl"
+       class="img-fluid w-100"
+       [alt]="photo.photoName"
+       style="max-height: 600px; object-fit: contain;">
+
+  @if (processing) {
+  <div class="preview-overlay">
+    <div class="text-center text-white">
+      <div class="spinner-border mb-2" role="status"></div>
+      <div>Processing...</div>
+    </div>
+  </div>
+  }
+  </div>
+</div>
+</div>
+
+<!-- Quick Actions Row -->
+<div class="row mt-3">
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-bolt"></i> Quick Actions
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <button class="btn btn-outline-primary btn-sm w-100" (click)="applyQuickEdit('histogram-equalization')">
+            <i class="fas fa-chart-area"></i> Enhance Contrast
+          </button>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-success btn-sm w-100" (click)="applyQuickEdit('denoise-bilateral')">
+            <i class="fas fa-broom"></i> Remove Noise
+          </button>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-info btn-sm w-100" (click)="applyQuickEdit('edge-detection-canny')">
+            <i class="fas fa-vector-square"></i> Find Edges
+          </button>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-warning btn-sm w-100" (click)="applyQuickEdit('auto-threshold')">
+            <i class="fas fa-magic"></i> Auto Threshold
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Controls Section -->
+<div class="col-lg-4">
+<!-- Edit Mode Selector -->
+<div class="card mb-3">
+<div class="card-header">
+  <h6 class="mb-0">
+    <i class="fas fa-cogs"></i> Edit Mode
+  </h6>
+</div>
+<div class="card-body">
+  <div class="btn-group w-100" role="group">
+    <input type="radio" class="btn-check" name="editMode" id="simple" value="simple"
+           [(ngModel)]="editMode" (change)="onEditModeChange()">
+    <label class="btn btn-outline-primary" for="simple">Simple</label>
+
+    <input type="radio" class="btn-check" name="editMode" id="advanced" value="advanced"
+           [(ngModel)]="editMode" (change)="onEditModeChange()">
+    <label class="btn btn-outline-primary" for="advanced">Advanced</label>
+
+    <input type="radio" class="btn-check" name="editMode" id="combined" value="combined"
+           [(ngModel)]="editMode" (change)="onEditModeChange()">
+    <label class="btn btn-outline-primary" for="combined">Combined</label>
+  </div>
+</div>
+</div>
+
+<!-- Simple Mode -->
+@if (editMode === 'simple') {
+  <div class="card">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-sliders-h"></i> Basic Adjustments
+      </h6>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="simpleEditForm">
+        <!-- Brightness -->
+        <div class="mb-4">
+          <label class="form-label">
+            Brightness: <span class="fw-bold">{{ simpleEditForm.get('brightness')?.value || 0 }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="brightness"
+                 min="-100" max="100" step="1" (input)="onSimpleValueChange()">
+          <div class="d-flex justify-content-between">
+            <small class="text-muted">-100</small>
+            <small class="text-muted">0 (Normal)</small>
+            <small class="text-muted">100</small>
+          </div>
+        </div>
+
+        <!-- Contrast -->
+        <div class="mb-4">
+          <label class="form-label">
+            Contrast: <span class="fw-bold">{{ simpleEditForm.get('contrast')?.value || 1.0 | number:'1.1-1' }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="contrast"
+                 min="0.1" max="3.0" step="0.1" (input)="onSimpleValueChange()">
+          <div class="d-flex justify-content-between">
+            <small class="text-muted">0.1</small>
+            <small class="text-muted">1.0 (Normal)</small>
+            <small class="text-muted">3.0</small>
+          </div>
+        </div>
+
+        <!-- Gamma -->
+        <div class="mb-4">
+          <label class="form-label">
+            Gamma: <span class="fw-bold">{{ simpleEditForm.get('gamma')?.value || 1.0 | number:'1.1-1' }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="gamma"
+                 min="0.1" max="3.0" step="0.1" (input)="onSimpleValueChange()">
+          <div class="d-flex justify-content-between">
+            <small class="text-muted">0.1</small>
+            <small class="text-muted">1.0 (Normal)</small>
+            <small class="text-muted">3.0</small>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="button" class="btn btn-outline-secondary" (click)="resetSimpleValues()">
+            <i class="fas fa-undo"></i> Reset to Normal
+          </button>
+          <button type="button" class="btn btn-primary" (click)="applySimpleEdit()" [disabled]="processing">
+            @if (processing) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Processing...
+            } @else {
+            <i class="fas fa-check"></i> Apply Changes
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Advanced Mode -->
+  @if (editMode === 'advanced') {
+  <div class="card">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-tools"></i> Advanced Operations
+      </h6>
+    </div>
+    <div class="card-body">
+      <!-- Operations by Category -->
+      @for (category of getCategories(); track category) {
+      <div class="mb-4">
+        <h6 class="text-muted mb-3">{{ category }}</h6>
+            <div class="row g-2">
+              @for (operation of getOperationsByCategory(category); track operation.id) {
+      <div class="col-12">
+        <button class="btn btn-outline-secondary btn-sm w-100 text-start"
+                (click)="selectOperation(operation)"
+                [class.active]="selectedOperation?.id === operation.id">
+          <i [class]="operation.icon" class="me-2"></i>
+          {{ operation.name }}
+        </button>
+      </div>
+      }
+      </div>
+    </div>
+      }
+
+      <!-- Operation Parameters -->
+      @if (selectedOperation && selectedOperation.requiresParameters) {
+      <hr>
+      <div class="mb-3">
+        <h6>{{ selectedOperation.name }} Parameters</h6>
+            <small class="text-muted">{{ selectedOperation.description }}</small>
+          </div>
+
+          <form [formGroup]="advancedEditForm">
+            @for (param of selectedOperation.parameters; track param.name) {
+      <div class="mb-3">
+        @if (param.type === 'number') {
+        <label class="form-label">
+        {{ param.label }}:
+                <span class="fw-bold">{{ advancedEditForm.get(param.name)?.value || param.defaultValue }}</span>
+              </label>
+              <input type="range" class="form-range" [formControlName]="param.name"
+                     [min]="param.min" [max]="param.max" [step]="param.step">
+              <div class="d-flex justify-content-between">
+                <small class="text-muted">{{ param.min }}</small>
+                <small class="text-muted">{{ param.max }}</small>
+              </div>
+        } @else if (param.type === 'select') {
+        <label class="form-label">{{ param.label }}</label>
+              <select class="form-select form-select-sm" [formControlName]="param.name">
+                @for (option of param.options; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+        }
+        </select>
+        } @else if (param.type === 'boolean') {
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [formControlName]="param.name">
+          <label class="form-check-label">{{ param.label }}</label>
+              </div>
+        }
+      </div>
+      }
+      </form>
+      }
+
+      @if (selectedOperation) {
+      <div class="d-grid">
+        <button type="button" class="btn btn-primary" (click)="applyAdvancedEdit()" [disabled]="processing">
+          @if (processing) {
+      <span class="spinner-border spinner-border-sm me-1"></span>
+      Processing...
+      } @else {
+      <i class="fas fa-magic"></i> Apply {{ selectedOperation.name }}
+      }
+      </button>
+    </div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Combined Mode -->
+  @if (editMode === 'combined') {
+  <div class="card">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-layer-group"></i> Combined Processing
+      </h6>
+    </div>
+    <div class="card-body">
+      <form [formGroup]="combinedEditForm">
+        <!-- Basic Adjustments -->
+        <h6 class="text-muted mb-3">Basic Adjustments</h6>
+
+        <!-- Brightness -->
+        <div class="mb-3">
+          <label class="form-label">
+            Brightness: <span class="fw-bold">{{ combinedEditForm.get('brightness')?.value || 0 }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="brightness" min="-100" max="100" step="1">
+        </div>
+
+        <!-- Contrast -->
+        <div class="mb-3">
+          <label class="form-label">
+            Contrast: <span class="fw-bold">{{ combinedEditForm.get('contrast')?.value || 1.0 | number:'1.1-1' }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="contrast" min="0.1" max="3.0" step="0.1">
+        </div>
+
+        <!-- Gamma -->
+        <div class="mb-3">
+          <label class="form-label">
+            Gamma: <span class="fw-bold">{{ combinedEditForm.get('gamma')?.value || 1.0 | number:'1.1-1' }}</span>
+          </label>
+          <input type="range" class="form-range" formControlName="gamma" min="0.1" max="3.0" step="0.1">
+        </div>
+
+        <hr>
+
+        <!-- Enhancement Options -->
+        <h6 class="text-muted mb-3">Enhancement Options</h6>
+
+        <div class="mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" formControlName="histogramEqualization">
+            <label class="form-check-label">Apply Histogram Equalization</label>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Noise Reduction</label>
+          <select class="form-select" formControlName="noiseReduction">
+            <option value="">None</option>
+            <option value="bilateral">Bilateral Filter</option>
+            <option value="median">Median Filter</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Edge Detection</label>
+          <select class="form-select" formControlName="edgeDetectionType">
+            <option value="">None</option>
+            <option value="canny">Canny</option>
+            <option value="sobel">Sobel</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Threshold Value</label>
+          <input type="range" class="form-range" formControlName="thresholdValue" min="0" max="255" step="1">
+          <div class="text-muted small">
+            Current: {{ combinedEditForm.get('thresholdValue')?.value || 128 }} (0 = disabled)
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="button" class="btn btn-outline-secondary" (click)="resetCombinedValues()">
+            <i class="fas fa-undo"></i> Reset All
+          </button>
+          <button type="button" class="btn btn-primary" (click)="applyCombinedEdit()" [disabled]="processing">
+            @if (processing) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Processing...
+            } @else {
+            <i class="fas fa-layer-group"></i> Apply Combined Processing
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Edit History -->
+  @if (editHistory.length > 0) {
+  <div class="card mt-3">
+    <div class="card-header">
+      <h6 class="mb-0">
+        <i class="fas fa-history"></i> Edit History
+      </h6>
+    </div>
+    <div class="card-body">
+      <div class="list-group list-group-flush">
+        @for (edit of editHistory; track edit.editId) {
+        <div class="list-group-item px-0">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">{{ getEditDisplayName(edit) }}</h6>
+                  <small class="text-muted">{{ edit.editedAt | date:'medium' }}</small>
+                </div>
+                <small class="text-muted">{{ edit.ownerName }}</small>
+              </div>
+            </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Info Panel -->
+  <div class="card mt-3">
+    <div class="card-body">
+      <div class="alert alert-info mb-0" role="alert">
+        <i class="fas fa-info-circle"></i>
+        <strong>Tips:</strong>
+        <ul class="mb-0 mt-2">
+          <li><strong>Simple:</strong> Basic brightness, contrast, and gamma adjustments</li>
+          <li><strong>Advanced:</strong> Apply individual effects and filters</li>
+          <li><strong>Combined:</strong> Apply multiple operations in one pass for better performance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+  }
+</div>
