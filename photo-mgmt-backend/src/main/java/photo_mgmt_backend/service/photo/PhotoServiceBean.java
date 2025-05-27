@@ -232,11 +232,12 @@ public class PhotoServiceBean implements PhotoService {
         String imagePath = cloudinaryService.uploadImage(file, ownerId);
         photoToBeAdded.setPath(imagePath);
 
-        // NEW: Set original path same as current path for new uploads
+        // CRITICAL: Set original path same as current path for new uploads
         photoToBeAdded.setOriginalPath(imagePath);
 
         PhotoEntity photoAdded = photoRepository.save(photoToBeAdded);
-        log.info("[PHOTO] Added new photo with ID: {} to album: {}", photoAdded.getPhotoId(), photoRequestDTO.albumId());
+        log.info("[PHOTO] Added new photo with ID: {} to album: {}, original path set to: {}",
+                photoAdded.getPhotoId(), photoRequestDTO.albumId(), imagePath);
 
         return photoMapper.convertEntityToResponseDto(photoAdded);
     }

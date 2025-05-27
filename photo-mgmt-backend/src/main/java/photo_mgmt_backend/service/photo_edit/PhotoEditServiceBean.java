@@ -86,9 +86,10 @@ public class PhotoEditServiceBean implements PhotoEditService {
             // Store current image URL before editing (for version history)
             String currentImageUrl = photoEntity.getPath();
 
-            // If this is the first edit, set the original path
-            if (photoEntity.getOriginalPath() == null) {
+            // CRITICAL FIX: Only set original path if it's not already set
+            if (photoEntity.getOriginalPath() == null || photoEntity.getOriginalPath().isEmpty()) {
                 photoEntity.setOriginalPath(currentImageUrl);
+                log.info("[PHOTO_EDIT] Setting original path for photo {} to {}", photoEditRequestDTO.photoId(), currentImageUrl);
             }
 
             // Download current image from Cloudinary
@@ -115,15 +116,17 @@ public class PhotoEditServiceBean implements PhotoEditService {
 
             PhotoEditEntity photoEditAdded = photoEditRepository.save(photoEditToBeAdded);
 
-            // Update the photo's current path and edited status
+            // CRITICAL FIX: Update the photo's current path and edited status WITHOUT changing originalPath
             photoEntity.setIsEdited(true);
             photoEntity.setPath(editedImageUrl);
+            // DO NOT modify originalPath here - it should remain unchanged
             photoRepository.save(photoEntity);
 
             // Clean up temporary files
             cleanupTempFiles(currentImagePath, editedImagePath);
 
-            log.info("[PHOTO_EDIT] Created version {} for photo {}", nextVersion, photoEditRequestDTO.photoId());
+            log.info("[PHOTO_EDIT] Created version {} for photo {}, original path preserved: {}",
+                    nextVersion, photoEditRequestDTO.photoId(), photoEntity.getOriginalPath());
 
             return photoEditMapper.convertEntityToResponseDto(photoEditAdded);
 
