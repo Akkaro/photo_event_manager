@@ -1,3 +1,4 @@
+// photo-mgmt-frontend/src/app/feature/photos/photo/photo.component.ts
 import { NgClass } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
@@ -30,6 +31,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   photoId!: string;
   photoForm!: FormGroup;
   editMode = false;
+  loading = false;
   subject$ = new Subject<void>();
   userSubscription?: Subscription;
   loggedUser?: UserResponse;
@@ -50,7 +52,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.fetchPhotoId();
     if (this.photoId) {
       this.fetchPhoto();
-      this.fetchAlbums(); // Add this
+      this.fetchAlbums();
     } else {
       console.error('PhotoId parameter is missing or invalid');
       this.error = 'Missing or invalid photo ID';
@@ -82,8 +84,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   private fetchPhotoId(): void {
-    // Get the photoId from the route params using the id parameter
-    // This parameter name should match what's defined in your routes
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.photoId = id;
@@ -94,6 +94,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   private fetchPhoto(): void {
+    this.loading = true;
     console.log('Fetching photo with ID:', this.photoId);
     this.photoService.getById(this.photoId).subscribe({
       next: (photo) => {
@@ -129,10 +130,12 @@ export class PhotoComponent implements OnInit, OnDestroy {
           ]
         });
         this.photoForm.disable();
+        this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error fetching photo:', error);
         this.error = `Failed to load photo: ${error.message}`;
+        this.loading = false;
         this.modalService.open('Error', `Failed to load photo: ${error.error?.message || error.message}`, ModalType.ERROR);
       }
     });
@@ -152,11 +155,8 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
 
     if (this.editMode) {
-      // Enable only the fields that should be editable
       this.photoForm.get('photoName')?.enable();
-      // Add other fields you want to be editable
     } else {
-      // Save changes
       const updatedPhoto = {
         photoName: this.photoForm.get('photoName')?.value,
         albumId: this.photoForm.get('albumId')?.value
@@ -169,12 +169,15 @@ export class PhotoComponent implements OnInit, OnDestroy {
         },
         error: (error: HttpErrorResponse) => {
           this.modalService.open('Error', error.error?.message || 'Failed to update photo', ModalType.ERROR);
-          // Re-disable the form
           this.photoForm.disable();
-          this.editMode = true; // Keep in edit mode so user can try again
+          this.editMode = true;
         }
       });
     }
+  }
+
+  editPhoto(): void {
+    this.router.navigate([`/${ROUTES.PHOTOS}`, this.photoId, 'edit']);
   }
 
   deletePhoto(): void {

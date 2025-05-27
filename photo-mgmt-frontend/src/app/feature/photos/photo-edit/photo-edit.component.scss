@@ -1,0 +1,35 @@
+/* photo-mgmt-frontend/src/app/feature/photos/photo-edit/photo-edit.component.scss */
+
+.form-range {
+  margin: 0.5rem 0;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #007bff;
+}
+
+.form-range::-moz-range-thumb {
+  background: #007bff;
+  border: none;
+}
+
+.card-img-container {
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.img-fluid {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0.375rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+}
+
+.alert-info {
+  font-size: 0.875rem;
+}

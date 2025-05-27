@@ -17,6 +17,18 @@ export const routes: Routes = [
     loadComponent: () => import('./photo-upload/photo-upload.component').then(m => m.PhotoUploadComponent),
   },
   {
+    path: `${ROUTES.ID}/edit`,
+    loadComponent: () => import('./photo-edit/photo-edit.component').then(m => m.PhotoEditComponent),
+    canActivate: [ hasAuthorization ],
+    data: {
+      requiredRoles: [ 'ADMIN', 'MODERATOR', 'USER' ],
+      isSelf: true
+    },
+    providers: [
+      { provide: 'renderMode', useValue: 'clientOnly' }
+    ]
+  },
+  {
     path: ROUTES.ID,
     loadComponent: () => import('./photo/photo.component').then(m => m.PhotoComponent),
     canActivate: [ hasAuthorization ],
