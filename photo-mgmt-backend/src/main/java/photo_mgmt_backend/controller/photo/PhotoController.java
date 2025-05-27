@@ -24,7 +24,7 @@ import photo_mgmt_backend.model.dto.photo_edit.PhotoEditResponseDTO;
 import java.util.UUID;
 
 @RequestMapping("/v1/photos")
-@Tag(name = "Photo Management", description = "Operations for managing photos")
+@Tag(name = "Photo Management", description = "Operations for managing photos with advanced editing capabilities")
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 public interface PhotoController {
 
@@ -102,7 +102,10 @@ public interface PhotoController {
     void delete(@PathVariable(name = "id") UUID id);
 
     @PostMapping("/{id}/edit")
-    @Operation(summary = "Edit a photo", description = "Apply brightness and contrast adjustments to a photo.")
+    @Operation(summary = "Edit a photo with advanced options",
+            description = "Apply various image processing operations including brightness/contrast, gamma correction, " +
+                    "histogram equalization, blur, edge detection, morphological operations, noise reduction, " +
+                    "thresholding, and HSV conversion.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Photo edited successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -118,4 +121,86 @@ public interface PhotoController {
     @PreAuthorize("isAuthenticated()")
     PhotoEditResponseDTO editPhoto(@PathVariable(name = "id") UUID photoId,
                                    @RequestBody @Valid PhotoEditRequestDTO editRequest);
+
+    @PostMapping("/{id}/edit/brightness-contrast")
+    @Operation(summary = "Apply brightness and contrast adjustments",
+            description = "Apply simple brightness and contrast adjustments to a photo.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editBrightnessContrast(@PathVariable(name = "id") UUID photoId,
+                                                @RequestParam(required = false, defaultValue = "0") Double brightness,
+                                                @RequestParam(required = false, defaultValue = "1.0") Double contrast);
+
+    @PostMapping("/{id}/edit/gamma")
+    @Operation(summary = "Apply gamma correction",
+            description = "Apply gamma correction to adjust image exposure.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editGamma(@PathVariable(name = "id") UUID photoId,
+                                   @RequestParam Double gamma);
+
+    @PostMapping("/{id}/edit/histogram-equalization")
+    @Operation(summary = "Apply histogram equalization",
+            description = "Enhance image contrast using histogram equalization.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editHistogramEqualization(@PathVariable(name = "id") UUID photoId);
+
+    @PostMapping("/{id}/edit/blur")
+    @Operation(summary = "Apply Gaussian blur",
+            description = "Apply Gaussian blur with specified kernel size and sigma.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editBlur(@PathVariable(name = "id") UUID photoId,
+                                  @RequestParam Integer kernelSize,
+                                  @RequestParam(required = false, defaultValue = "2.0") Double sigma);
+
+    @PostMapping("/{id}/edit/edge-detection")
+    @Operation(summary = "Apply edge detection",
+            description = "Apply edge detection using Canny or Sobel algorithms.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editEdgeDetection(@PathVariable(name = "id") UUID photoId,
+                                           @RequestParam String type); // canny or sobel
+
+    @PostMapping("/{id}/edit/morphological")
+    @Operation(summary = "Apply morphological operations",
+            description = "Apply morphological opening or closing operations.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editMorphological(@PathVariable(name = "id") UUID photoId,
+                                           @RequestParam String operation, // open or close
+                                           @RequestParam Integer kernelSize,
+                                           @RequestParam(required = false, defaultValue = "1") Integer iterations);
+
+    @PostMapping("/{id}/edit/denoise")
+    @Operation(summary = "Apply noise reduction",
+            description = "Apply noise reduction using bilateral or median filtering.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editDenoise(@PathVariable(name = "id") UUID photoId,
+                                     @RequestParam String type); // bilateral or median
+
+    @PostMapping("/{id}/edit/threshold")
+    @Operation(summary = "Apply thresholding",
+            description = "Apply binary thresholding with specified threshold value.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editThreshold(@PathVariable(name = "id") UUID photoId,
+                                       @RequestParam Integer threshold,
+                                       @RequestParam(required = false, defaultValue = "binary") String type);
+
+    @PostMapping("/{id}/edit/auto-threshold")
+    @Operation(summary = "Apply automatic thresholding",
+            description = "Apply automatic thresholding using Otsu's method.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editAutoThreshold(@PathVariable(name = "id") UUID photoId);
+
+    @PostMapping("/{id}/edit/hsv-convert")
+    @Operation(summary = "Convert to HSV color space",
+            description = "Convert image to HSV color space representation.")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PhotoEditResponseDTO editHsvConvert(@PathVariable(name = "id") UUID photoId);
 }

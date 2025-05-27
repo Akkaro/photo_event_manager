@@ -29,6 +29,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -141,17 +143,89 @@ public class PhotoEditServiceBean implements PhotoEditService {
 
     private String applyPhotoEdits(String originalImagePath, PhotoEditRequestDTO editRequest) throws IOException {
         String editedImagePath = originalImagePath.replace("_original.jpg", "_edited.jpg");
-        ProcessBuilder pb = new ProcessBuilder(
-                Paths.get(editingToolsPath, "OpenCVApplication.exe").toString(),
-                originalImagePath,
-                editedImagePath,
-                "combined",
-                String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 1.0),
-                String.valueOf(editRequest.contrast() != null ? editRequest.contrast().doubleValue() : 1.0)
-        );
 
+        List<String> command = new ArrayList<>();
+        command.add(Paths.get(editingToolsPath, "OpenCVApplication.exe").toString());
+        command.add(originalImagePath);
+        command.add(editedImagePath);
+
+        // Determine the operation type and build command
+        if (Boolean.TRUE.equals(editRequest.combinedProcessing())) {
+            buildCombinedCommand(command, editRequest);
+        } else {
+            buildSingleOperationCommand(command, editRequest);
+        }
+
+        ProcessBuilder pb = new ProcessBuilder(command);
         executeProcess(pb, "photo editing");
         return editedImagePath;
+    }
+
+    private void buildCombinedCommand(List<String> command, PhotoEditRequestDTO editRequest) {
+        command.add("combined");
+
+        // Add brightness (default 0 if not specified)
+        command.add(String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 0));
+
+        // Add contrast (default 1.0 if not specified)
+        command.add(String.valueOf(editRequest.contrast() != null ? editRequest.contrast().doubleValue() : 1.0));
+
+        // Add gamma (default 1.0 if not specified)
+        command.add(String.valueOf(editRequest.gamma() != null ? editRequest.gamma().doubleValue() : 1.0));
+
+        // Add histogram equalization flag (1 for true, 0 for false)
+        command.add(Boolean.TRUE.equals(editRequest.histogramEqualization()) ? "1" : "0");
+
+        // Add noise reduction type (default "none")
+        command.add(editRequest.noiseReduction() != null ? editRequest.noiseReduction() : "none");
+
+        // Add edge detection type (default "none")
+        command.add(editRequest.edgeDetectionType() != null ? editRequest.edgeDetectionType() : "none");
+
+        // Add threshold value (default -1 for no thresholding)
+        command.add(String.valueOf(editRequest.thresholdValue() != null ? editRequest.thresholdValue() : -1));
+    }
+
+    private void buildSingleOperationCommand(List<String> command, PhotoEditRequestDTO editRequest) {
+        // Determine which single operation to apply
+        if (editRequest.brightness() != null || editRequest.contrast() != null) {
+            command.add("brightness_contrast");
+            command.add(String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 0));
+            command.add(String.valueOf(editRequest.contrast() != null ? editRequest.contrast().doubleValue() : 1.0));
+        } else if (editRequest.gamma() != null) {
+            command.add("gamma");
+            command.add(String.valueOf(editRequest.gamma().doubleValue()));
+        } else if (Boolean.TRUE.equals(editRequest.histogramEqualization())) {
+            command.add("histogram_eq");
+        } else if (editRequest.blurKernelSize() != null) {
+            command.add("blur");
+            command.add(String.valueOf(editRequest.blurKernelSize()));
+            command.add(String.valueOf(editRequest.blurSigma() != null ? editRequest.blurSigma().doubleValue() : 2.0));
+        } else if (editRequest.edgeDetectionType() != null) {
+            command.add("edge_detection");
+            command.add(editRequest.edgeDetectionType());
+        } else if (editRequest.morphologicalOperation() != null) {
+            command.add("morphological");
+            command.add(editRequest.morphologicalOperation());
+            command.add(String.valueOf(editRequest.morphologicalKernelSize() != null ? editRequest.morphologicalKernelSize() : 5));
+            command.add(String.valueOf(editRequest.morphologicalIterations() != null ? editRequest.morphologicalIterations() : 1));
+        } else if (editRequest.noiseReduction() != null) {
+            command.add("denoise");
+            command.add(editRequest.noiseReduction());
+        } else if (editRequest.thresholdValue() != null) {
+            command.add("threshold");
+            command.add(String.valueOf(editRequest.thresholdValue()));
+            command.add(editRequest.thresholdType() != null ? editRequest.thresholdType() : "binary");
+        } else if (Boolean.TRUE.equals(editRequest.autoThreshold())) {
+            command.add("auto_threshold");
+        } else if (Boolean.TRUE.equals(editRequest.hsvConversion())) {
+            command.add("hsv_convert");
+        } else {
+            // Default to brightness/contrast with default values
+            command.add("brightness_contrast");
+            command.add("0");
+            command.add("1.0");
+        }
     }
 
     private void executeProcess(ProcessBuilder pb, String operation) throws IOException {
