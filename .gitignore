@@ -81,6 +81,3 @@ photo-mgmt-backend/src/main/resources/application.properties
 Documentation/
 Media/
 sergiublaj/
-
-#Remove DLL
-*.dll
