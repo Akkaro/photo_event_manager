@@ -227,8 +227,15 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   onVersionReverted(version: PhotoVersion): void {
+
+    console.log('🔄 Version reverted - starting photo refresh');
+    console.log('Current photo before refresh:', this.photoForm);
+    console.log('Current photoId:', this.photoId);
+
     // Refresh the photo data after version revert
-    this.fetchPhoto();
+    setTimeout(() => {
+      this.fetchPhoto();
+    }, 500);
     this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
   }
 

@@ -107,6 +107,8 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
       reason: `Reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}`
     };
 
+    console.log('🔄 Starting revert for version:', version);
+
     this.photoService.revertToVersion(this.photoId, request).subscribe({
       next: (revertedVersion) => {
         this.modalService.open('Success', 'Photo reverted successfully!', ModalType.SUCCESS);
