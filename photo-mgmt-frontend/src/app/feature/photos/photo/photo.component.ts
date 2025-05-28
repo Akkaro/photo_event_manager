@@ -40,7 +40,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
   private albums: AlbumResponse[] = [];
   private deleteConfirmationPending = false;
 
-  // Version history
   showVersionHistoryModal = false;
   showingOriginal = false;
   currentImageUrl = '';
@@ -143,7 +142,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
         });
         this.photoForm.disable();
 
-        // Set image URLs
         this.currentImageUrl = photo.path;
         this.originalImageUrl = photo.originalPath;
 
@@ -207,7 +205,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.modalService.confirm$
       .pipe(takeUntil(this.subject$))
       .subscribe((action) => {
-        // Only process if we're expecting a delete confirmation
         if (this.deleteConfirmationPending) {
           this.deleteConfirmationPending = false;
 
@@ -224,7 +221,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
       });
   }
 
-  // NEW: Version history methods
   toggleOriginal(): void {
     this.showingOriginal = !this.showingOriginal;
     this.currentImageUrl = this.showingOriginal ? this.originalImageUrl : this.photoForm.get('path')?.value;
@@ -236,11 +232,10 @@ export class PhotoComponent implements OnInit, OnDestroy {
 
   onVersionReverted(version: PhotoVersion): void {
 
-    console.log('🔄 Version reverted - starting photo refresh');
+    console.log('Version reverted - starting photo refresh');
     console.log('Current photo before refresh:', this.photoForm);
     console.log('Current photoId:', this.photoId);
 
-    // Refresh the photo data after version revert
     setTimeout(() => {
       this.fetchPhoto();
     }, 500);

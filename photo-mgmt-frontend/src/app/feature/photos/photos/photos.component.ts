@@ -25,7 +25,7 @@ import {take} from 'rxjs/operators';
     CommonModule,
     SearchBarComponent,
     PaginationComponent,
-    PhotoVersionHistoryComponent  // Add this
+    PhotoVersionHistoryComponent
   ],
   templateUrl: './photos.component.html',
   styleUrl: './photos.component.scss'
@@ -53,21 +53,18 @@ export class PhotosComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      // Check for direct filter parameters first
       const albumId = params.get('albumId');
       const searchBy = params.get('searchBy');
       this.currentPage = +(params.get('page') ?? '0');
 
-      // If we have a direct albumId parameter, use it directly
       if (albumId) {
         const filter: PhotoFilter = {
           albumId: albumId,
           pageNumber: this.currentPage,
-          pageSize: 10 // You might want to get this from your apiConfig
+          pageSize: 10
         };
         this.fetchPhotosWithFilter(filter);
       } else {
-        // Otherwise use the searchBy parameter as before
         this.fetchPhotos(searchBy || '', this.currentPage);
       }
     });
@@ -119,7 +116,7 @@ export class PhotosComponent implements OnInit {
   }
 
   savePhoto(): void {
-    if (this.addPhotoForm.valid && this.selectedFile) {  // Add a check for selectedFile
+    if (this.addPhotoForm.valid && this.selectedFile) {
       const newPhoto = {
         ...this.addPhotoForm.value,
         photoId: this.addPhotoForm.value.photoId,
@@ -128,7 +125,7 @@ export class PhotosComponent implements OnInit {
         uploadedAt: new Date(this.addPhotoForm.value.uploadedAt).toISOString(),
         isEdited: this.addPhotoForm.value.isEdited
       };
-      this.photoService.save(newPhoto, this.selectedFile).subscribe({  // Pass the file here
+      this.photoService.save(newPhoto, this.selectedFile).subscribe({
         next: (savedPhoto) => {
           this.photos.push(savedPhoto);
           this.addPhotoForm.reset();
@@ -148,7 +145,6 @@ export class PhotosComponent implements OnInit {
   }
 
   onVersionReverted(version: PhotoVersion): void {
-    // Optionally refresh the photos list or show a success message
     this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
   }
 
@@ -164,14 +160,12 @@ export class PhotosComponent implements OnInit {
   }
 
   navigateToUpload(): void {
-    // Get the current album ID from the route
     this.route.queryParamMap.pipe(take(1)).subscribe(params => {
       const currentAlbumId = params.get('albumId');
 
       console.log('Photos component - navigating to upload with albumId:', currentAlbumId);
 
       if (currentAlbumId) {
-        // Navigate to upload with the album ID preserved
         this.router.navigate(['/photos/upload'], {
           queryParams: {
             albumId: currentAlbumId,
@@ -179,7 +173,6 @@ export class PhotosComponent implements OnInit {
           }
         });
       } else {
-        // Navigate to upload without album ID (show all albums)
         this.router.navigate(['/photos/upload']);
       }
     });

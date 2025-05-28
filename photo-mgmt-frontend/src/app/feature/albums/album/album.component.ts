@@ -63,7 +63,7 @@ export class AlbumComponent implements OnInit, OnDestroy {
 
   private fetchAlbumId(): void {
     this.albumId = this.route.snapshot.paramMap.get('id')!;
-    console.log('fetchAlbumId - setting albumId to:', this.albumId); // Add this line
+    console.log('fetchAlbumId - setting albumId to:', this.albumId);
     if (!this.albumId) {
       this.error = 'Album ID not found';
       this.modalService.open('Error', 'Album ID not found', ModalType.ERROR);
@@ -101,7 +101,6 @@ export class AlbumComponent implements OnInit, OnDestroy {
           ]
         });
 
-        // Check if logged user is the owner of this album
         if (this.loggedUser) {
           this.isOwner = this.loggedUser.userId === album.ownerId;
           console.log('Setting isOwner:', this.isOwner, 'loggedUser.userId:', this.loggedUser.userId, 'album.ownerId:', album.ownerId);
@@ -123,7 +122,6 @@ export class AlbumComponent implements OnInit, OnDestroy {
         this.loggedUser = response;
         console.log('User changed:', this.loggedUser);
 
-        // If we already have album data, check ownership
         if (this.albumForm && this.albumForm.get('ownerId')?.value) {
           this.isOwner = this.loggedUser?.userId === this.albumForm.get('ownerId')?.value;
           console.log('Updated isOwner after user change:', this.isOwner);
@@ -140,10 +138,8 @@ export class AlbumComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
 
     if (this.editMode) {
-      // Enable only the name field for editing
       this.albumForm.get('albumName')?.enable();
     } else {
-      // Save changes
       const updatedAlbum = {
         albumName: this.albumForm.get('albumName')?.value
       };
@@ -155,7 +151,6 @@ export class AlbumComponent implements OnInit, OnDestroy {
         },
         error: (error: HttpErrorResponse) => {
           this.modalService.open('Error', error.error?.message || 'Failed to update album', ModalType.ERROR);
-          // Re-disable the form
           this.albumForm.disable();
           this.editMode = false;
         }

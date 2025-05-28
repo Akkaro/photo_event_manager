@@ -29,11 +29,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(filter(response => !!response))
       .subscribe(response => {
         this.user = response;
-        // Handle potential missing birthDate property
         if (response.ZonedDateTime) {
           this.birthDate = new Date(response.ZonedDateTime).toISOString().split('T')[0];
         } else {
-          this.birthDate = new Date().toISOString().split('T')[0]; // Default to today
+          this.birthDate = new Date().toISOString().split('T')[0];
         }
       });
   }

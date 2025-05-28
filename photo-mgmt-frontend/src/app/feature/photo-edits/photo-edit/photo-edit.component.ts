@@ -1,4 +1,3 @@
-// photo-mgmt-frontend/src/app/feature/photo-edits/photo-edit/photo-edit.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,7 +22,7 @@ import {PhotoVersion} from '../../photo-versions/models/photo-version.model';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    PhotoVersionHistoryComponent  // Add this
+    PhotoVersionHistoryComponent
   ],
   templateUrl: './photo-edit.component.html',
   styleUrl: './photo-edit.component.scss'
@@ -33,26 +32,21 @@ export class PhotoEditComponent implements OnInit {
   photo?: PhotoResponse;
   editMode: 'simple' | 'advanced' | 'combined' = 'simple';
 
-  // Forms
   simpleEditForm!: FormGroup;
   advancedEditForm!: FormGroup;
   combinedEditForm!: FormGroup;
 
-  // State
   loading = false;
   processing = false;
   error: string | null = null;
   showOriginal = false;
 
-  // Preview
   originalPreviewUrl: string | null = null;
   currentPreviewUrl: string | null = null;
 
-  // Advanced mode
   selectedOperation?: EditOperation;
   operations = EDIT_OPERATIONS;
 
-  // History
   editHistory: PhotoEditResponse[] = [];
   showVersionHistoryModal = false;
 
@@ -77,17 +71,14 @@ export class PhotoEditComponent implements OnInit {
   }
 
   private initializeForms(): void {
-    // Simple edit form
     this.simpleEditForm = this.fb.group({
       brightness: [0],
       contrast: [1.0],
       gamma: [1.0]
     });
 
-    // Advanced edit form - dynamic based on selected operation
     this.advancedEditForm = this.fb.group({});
 
-    // Combined edit form
     this.combinedEditForm = this.fb.group({
       brightness: [0],
       contrast: [1.0],
@@ -116,7 +107,6 @@ export class PhotoEditComponent implements OnInit {
     });
   }
 
-  // Edit Mode Management
   onEditModeChange(): void {
     this.selectedOperation = undefined;
     this.resetForms();
@@ -142,7 +132,6 @@ export class PhotoEditComponent implements OnInit {
     this.advancedEditForm = this.fb.group({});
   }
 
-  // Simple Mode Methods
   onSimpleValueChange(): void {
     // Could implement real-time preview here if needed
   }
@@ -184,7 +173,6 @@ export class PhotoEditComponent implements OnInit {
     });
   }
 
-  // Advanced Mode Methods
   getCategories(): string[] {
     return Object.values(EditCategory);
   }
@@ -196,7 +184,6 @@ export class PhotoEditComponent implements OnInit {
   selectOperation(operation: EditOperation): void {
     this.selectedOperation = operation;
 
-    // Build form for operation parameters
     if (operation.requiresParameters && operation.parameters) {
       const formGroup: any = {};
       operation.parameters.forEach(param => {
@@ -216,7 +203,6 @@ export class PhotoEditComponent implements OnInit {
     this.processing = true;
     const formValues = this.advancedEditForm.value;
 
-    // Call the appropriate service method based on operation
     let editObservable;
 
     switch (this.selectedOperation.id) {
@@ -295,7 +281,6 @@ export class PhotoEditComponent implements OnInit {
     });
   }
 
-  // Combined Mode Methods
   resetCombinedValues(): void {
     this.combinedEditForm.reset({
       brightness: 0,
@@ -341,7 +326,6 @@ export class PhotoEditComponent implements OnInit {
     });
   }
 
-  // Quick Actions
   applyQuickEdit(action: string): void {
     this.processing = true;
     let editObservable;
@@ -376,7 +360,6 @@ export class PhotoEditComponent implements OnInit {
     });
   }
 
-  // Preview Management
   toggleOriginal(): void {
     this.showOriginal = !this.showOriginal;
     this.currentPreviewUrl = this.showOriginal ? this.originalPreviewUrl : this.photo?.path || null;
@@ -387,12 +370,10 @@ export class PhotoEditComponent implements OnInit {
     this.showOriginal = false;
   }
 
-  // Utility Methods
   private handleEditSuccess(response: PhotoEditResponse): void {
     this.modalService.open('Success', 'Photo edited successfully!', ModalType.SUCCESS);
     this.editHistory.unshift(response);
 
-    // Navigate immediately
     this.router.navigate([`/${ROUTES.PHOTOS}`, this.photoId]);
   }
   private handleEditError(error: any): void {
@@ -444,11 +425,9 @@ export class PhotoEditComponent implements OnInit {
   }
 
   onVersionReverted(version: PhotoVersion): void {
-    // Refresh the photo data after version revert
     this.loadPhoto();
     this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
 
-    // Update the current preview URL
     this.currentPreviewUrl = version.imageUrl;
   }
 

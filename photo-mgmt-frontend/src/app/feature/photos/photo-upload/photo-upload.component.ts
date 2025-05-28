@@ -1,4 +1,3 @@
-// photo-mgmt-frontend/src/app/feature/photos/photo-upload/photo-upload.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -28,7 +27,7 @@ export class PhotoUploadComponent implements OnInit {
   loading = false;
   preselectedAlbumId: string | null = null;
   preselectedAlbumName: string | null = null;
-  isAlbumLocked = false; // NEW: Flag to determine if album selection is locked
+  isAlbumLocked = false;
 
   constructor(
     private fb: FormBuilder,
@@ -40,14 +39,12 @@ export class PhotoUploadComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // ENHANCED: More detailed logging and route param handling
     this.route.queryParamMap.subscribe(params => {
       console.log('All query params:', params.keys.map(key => `${key}=${params.get(key)}`));
 
       this.preselectedAlbumId = params.get('albumId');
       console.log('Raw preselectedAlbumId from params:', this.preselectedAlbumId);
 
-      // If we have a preselected album ID, lock the album selection
       this.isAlbumLocked = !!this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '';
 
       console.log('Upload component - preselectedAlbumId:', this.preselectedAlbumId);
@@ -77,7 +74,6 @@ export class PhotoUploadComponent implements OnInit {
         if (this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '') {
           console.log('Processing preselected album:', this.preselectedAlbumId);
 
-          // Find the preselected album to get its name
           const preselectedAlbum = this.albums.find(album => album.albumId === this.preselectedAlbumId);
           console.log('Found preselected album:', preselectedAlbum);
 
@@ -95,14 +91,13 @@ export class PhotoUploadComponent implements OnInit {
             console.log('Available album IDs:', this.albums.map(a => a.albumId));
             console.log('Looking for:', this.preselectedAlbumId);
 
-            // If preselected album not found, unlock the selection
             this.isAlbumLocked = false;
             this.preselectedAlbumId = null;
             this.preselectedAlbumName = null;
           }
         } else {
           console.log('No preselected album or empty string, showing dropdown');
-          // No preselected album, set the first one as default if available
+
           if (this.albums.length > 0) {
             this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
           }
@@ -128,7 +123,6 @@ export class PhotoUploadComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
 
-      // Create image preview
       const reader = new FileReader();
       reader.onload = () => {
         this.imagePreview = reader.result as string;
@@ -154,7 +148,6 @@ export class PhotoUploadComponent implements OnInit {
         this.loading = false;
         this.modalService.open('Success', 'Photo uploaded successfully!', ModalType.SUCCESS);
 
-        // If we came from an album, go back to that album's photos
         if (this.preselectedAlbumId) {
           this.router.navigate([`/${ROUTES.PHOTOS}`], {
             queryParams: { albumId: this.preselectedAlbumId }
@@ -172,7 +165,6 @@ export class PhotoUploadComponent implements OnInit {
   }
 
   cancel(): void {
-    // If we came from an album, go back to that album
     if (this.preselectedAlbumId) {
       this.router.navigate([`/${ROUTES.PHOTOS}`], {
         queryParams: { albumId: this.preselectedAlbumId }

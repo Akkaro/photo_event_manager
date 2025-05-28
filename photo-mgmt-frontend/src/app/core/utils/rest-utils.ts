@@ -27,7 +27,6 @@ export const buildPhotoFilterDTOFromSearchBy = (searchBy: string | null, page: n
 };
 
 export const buildPhotoQueryParams = (filter?: PhotoFilter): HttpParams => {
-  // Create a default filter if none provided
   const safeFilter = filter || {
     pageNumber: 0,
     pageSize: apiConfig.pageSize
@@ -60,7 +59,6 @@ export const buildAlbumFilterDTOFromSearchBy = (searchBy: string | null, page: n
 };
 
 export const buildAlbumQueryParams = (filter?: AlbumFilter): HttpParams => {
-  // Create a default filter if none provided
   const safeFilter = filter || {
     pageNumber: 0,
     pageSize: apiConfig.pageSize

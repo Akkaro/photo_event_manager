@@ -71,14 +71,12 @@ export class AlbumsComponent implements OnInit, OnDestroy {
 
   private fetchAlbums(searchBy: string, page: number): void {
     if (!this.loggedUser) {
-      return; // Don't fetch if user isn't loaded yet
+      return;
     }
 
     this.loading = true;
-    // Create the filter without ownerId - the backend will handle permissions
     const filter = buildAlbumFilterDTOFromSearchBy(searchBy, page);
 
-    // Use the standard getAll method
     this.albumService.getAll(filter).subscribe({
       next: (response) => {
         this.albums = response.elements;
@@ -90,7 +88,6 @@ export class AlbumsComponent implements OnInit, OnDestroy {
         this.loading = false;
         console.error('Error loading albums:', error);
 
-        // Show a user-friendly error message
         this.modalService.open(
           'Error Loading Albums',
           'There was a problem loading your albums. Please try again later.',

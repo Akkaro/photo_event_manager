@@ -30,7 +30,6 @@
   transition: opacity 0.3s ease;
 }
 
-// Form range styling
 .form-range {
   margin: 0.5rem 0;
 
@@ -53,7 +52,6 @@
   }
 }
 
-// Card styling
 .card {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
@@ -73,7 +71,6 @@
   }
 }
 
-// Button styling
 .btn {
   transition: all 0.2s ease;
 
@@ -92,7 +89,6 @@
   }
 }
 
-// Operation buttons
 .btn-outline-secondary.text-start {
   &.active {
     background-color: #007bff;
@@ -106,7 +102,6 @@
   }
 }
 
-// Quick action buttons
 .btn-sm {
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
@@ -116,7 +111,6 @@
   }
 }
 
-// Edit mode selector
 .btn-group {
   .btn-check:checked + .btn {
     background-color: #007bff;
@@ -125,7 +119,6 @@
   }
 }
 
-// Alert styling
 .alert-info {
   font-size: 0.875rem;
   border-left: 4px solid #17a2b8;
@@ -139,7 +132,6 @@
   }
 }
 
-// List group styling
 .list-group-item {
   transition: background-color 0.2s ease;
 
@@ -148,7 +140,6 @@
   }
 }
 
-// Form styling
 .form-select,
 .form-control {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
@@ -170,7 +161,6 @@
   }
 }
 
-// Responsive adjustments
 @media (max-width: 768px) {
   .photo-preview-container {
     min-height: 300px;
@@ -195,7 +185,6 @@
   }
 }
 
-// Spinner animation
 .spinner-border {
   animation: spinner-border 0.75s linear infinite;
 }
@@ -206,7 +195,6 @@
   }
 }
 
-// Category sections
 .text-muted {
   font-weight: 500;
   font-size: 0.9rem;
@@ -215,7 +203,6 @@
   border-bottom: 1px solid #e9ecef;
 }
 
-// Parameter inputs
 .form-label {
   font-weight: 500;
   color: #495057;
@@ -226,7 +213,6 @@
   }
 }
 
-// Range input labels
 .d-flex.justify-content-between {
   small {
     font-size: 0.75rem;

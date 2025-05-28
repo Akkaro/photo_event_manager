@@ -7,6 +7,6 @@ export interface AlbumResponse extends AlbumBase {
   ownerName: string;
   qrCode: string;
   createdAt: string;
-  isShared?: boolean; // Flag to indicate if this album is shared with current user
-  sharedByUser?: string; // Name of user who shared it (if applicable)
+  isShared?: boolean;
+  sharedByUser?: string;
 }

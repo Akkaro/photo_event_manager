@@ -1,4 +1,3 @@
-// photo-mgmt-frontend/src/app/feature/albums/album-share/album-share.component.ts
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';

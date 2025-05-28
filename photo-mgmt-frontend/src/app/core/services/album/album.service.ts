@@ -25,7 +25,6 @@ export class AlbumService {
   }
 
   getByOwner(ownerId: string, filter?: AlbumFilter): Observable<CollectionResponseDTO<AlbumResponse>> {
-    // Make sure we create a proper filter object with defined values
     const filterWithOwner: AlbumFilter = {
       ownerId: ownerId,
       pageNumber: filter?.pageNumber ?? 0,
@@ -56,7 +55,6 @@ export class AlbumService {
     return this.http.delete<void>(`/v1/${ROUTES.ALBUMS}/${albumId}`);
   }
 
-  // In AlbumService
   shareAlbum(albumId: string, userEmail: string): Observable<void> {
     return this.http.post<void>(`/v1/${ROUTES.ALBUMS}/${albumId}/share`, { userEmail });
   }

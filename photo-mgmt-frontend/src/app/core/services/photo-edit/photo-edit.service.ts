@@ -1,4 +1,3 @@
-// photo-mgmt-frontend/src/app/feature/photo-edits/services/photo-edit.service.ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -14,12 +13,10 @@ export class PhotoEditService {
 
   constructor(private http: HttpClient) { }
 
-  // Advanced editing with all options
   editPhoto(photoId: string, editRequest: PhotoEditRequest): Observable<PhotoEditResponse> {
     return this.http.post<PhotoEditResponse>(`/v1/${ROUTES.PHOTOS}/${photoId}/edit`, editRequest);
   }
 
-  // Individual operation endpoints
   editBrightnessContrast(photoId: string, brightness: number = 0, contrast: number = 1.0): Observable<PhotoEditResponse> {
     return this.http.post<PhotoEditResponse>(
       `/v1/${ROUTES.PHOTOS}/${photoId}/edit/brightness-contrast`,

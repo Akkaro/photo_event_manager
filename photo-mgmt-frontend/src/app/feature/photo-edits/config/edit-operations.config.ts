@@ -1,7 +1,6 @@
 import { EditOperation, EditCategory } from '../models/edit-operation.model';
 
 export const EDIT_OPERATIONS: EditOperation[] = [
-  // Basic Adjustments
   {
     id: 'brightness-contrast',
     name: 'Brightness & Contrast',
@@ -53,7 +52,6 @@ export const EDIT_OPERATIONS: EditOperation[] = [
     ]
   },
 
-  // Image Enhancement
   {
     id: 'histogram-equalization',
     name: 'Histogram Equalization',
@@ -84,7 +82,6 @@ export const EDIT_OPERATIONS: EditOperation[] = [
     ]
   },
 
-  // Effects & Filters
   {
     id: 'blur',
     name: 'Gaussian Blur',
@@ -145,7 +142,6 @@ export const EDIT_OPERATIONS: EditOperation[] = [
     requiresParameters: false
   },
 
-  // Advanced Processing
   {
     id: 'threshold',
     name: 'Thresholding',

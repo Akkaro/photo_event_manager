@@ -19,7 +19,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   protected readonly ROUTES = ROUTES;
   protected readonly Role = Role;
 
-  // For users who can access the photo table
   hasPhotoTablePermission: boolean = false;
   userRole?: Role;
   userSubscription?: Subscription;

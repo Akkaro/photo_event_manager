@@ -43,7 +43,6 @@ export class PhotoService {
     return this.http.delete<void>(`/v1/${ROUTES.PHOTOS}/${photoId}`);
   }
 
-  // NEW: Version management methods
   getVersionHistory(photoId: string): Observable<PhotoVersionHistory> {
     return this.http.get<PhotoVersionHistory>(`/v1/${ROUTES.PHOTOS}/${photoId}/versions`);
   }

@@ -25,12 +25,10 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
 
   viewMode: 'timeline' | 'grid' | 'compare' = 'timeline';
 
-  // Preview - FIXED: Renamed to avoid conflict
   showPreview = false;
-  currentPreviewVersion?: PhotoVersion;  // Changed from previewVersion
+  currentPreviewVersion?: PhotoVersion;
   selectedVersion?: PhotoVersion;
 
-  // Compare mode
   compareFromVersion: number = 0;
   compareToVersion: number = 1;
 
@@ -60,11 +58,8 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
         this.versionHistory = history;
         this.loading = false;
 
-        // Set default compare versions with better logic
         if (history.versions.length > 1) {
-          // Find original version (version 0)
           const originalVersion = history.versions.find(v => v.versionNumber === 0);
-          // Find current version
           const currentVersion = history.versions.find(v => v.isCurrent);
 
           if (originalVersion) {
@@ -79,7 +74,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
             this.compareToVersion = Number(history.versions[0].versionNumber);
           }
         } else if (history.versions.length === 1) {
-          // Only one version available
           this.compareFromVersion = Number(history.versions[0].versionNumber);
           this.compareToVersion = Number(history.versions[0].versionNumber);
         }
@@ -106,7 +100,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
     });
   }
 
-  // FIXED: Renamed method to avoid conflict
   showVersionPreview(version: PhotoVersion): void {
     this.currentPreviewVersion = version;
     this.showPreview = true;
@@ -126,7 +119,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
       ModalType.CONFIRM
     );
 
-    // Subscribe to modal confirmation
     this.modalService.confirm$.subscribe(() => {
       this.performRevert(version);
     });
@@ -139,14 +131,13 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
       reason: `Reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}`
     };
 
-    console.log('🔄 Starting revert for version:', version);
+    console.log('Starting revert for version:', version);
 
     this.photoService.revertToVersion(this.photoId, request).subscribe({
       next: (revertedVersion) => {
         this.modalService.open('Success', 'Photo reverted successfully!', ModalType.SUCCESS);
         this.versionReverted.emit(revertedVersion);
 
-        // Reload version history to show the new revert version
         this.loadVersionHistory();
         this.closePreview();
       },
@@ -167,7 +158,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
       return '';
     }
 
-    // Convert to number in case it's a string from the dropdown
     const versionNum = typeof versionNumber === 'string' ? parseInt(versionNumber, 10) : versionNumber;
 
     console.log('Looking for version:', versionNum, 'Type:', typeof versionNum);
@@ -179,7 +169,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
       return version.imageUrl;
     }
 
-    // Fallback: if version not found, log for debugging and return empty
     console.warn(`Version ${versionNum} not found in versions:`, this.versionHistory.versions.map(v => v.versionNumber));
     return '';
   }
@@ -192,7 +181,6 @@ export class PhotoVersionHistoryComponent implements OnInit, OnChanges {
   }
 
   onCompareSelectionChange(): void {
-    // Convert string values to numbers (in case they come from dropdown as strings)
     this.compareFromVersion = typeof this.compareFromVersion === 'string' ?
       parseInt(this.compareFromVersion, 10) : this.compareFromVersion;
     this.compareToVersion = typeof this.compareToVersion === 'string' ?
