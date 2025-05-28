@@ -1,29 +1,3 @@
-# PhotoApp - Photo Management Application
-
-## Actual status
-I have a basic application, with all the vital functionalities, and with bugs at places.
-
-
-## WHAT CAN BE DONE
-Login/Register (cookies and sessions), Listing all albums, lisitng pictures of an album, uploading new picture, deleting a picture.
-
-
-## Discovered bugs
-Photos cannot be edited. Upon save, gives the error belove.
-
-![image](https://github.com/user-attachments/assets/d8fe939c-adff-4650-82c7-997e7582b62d)
-
-Photos can be uploaded as .jpg and they are treted nicely. If photos are uploaded as .bmp (extension of photos used at the IP labs), they are cropped/filled with white space.
-
-
-## Upcomming TO DOs
-Correct the discovered bugs(with the editing).
-List only those albums which were created by the authenticated user.
-Create new editing page (and finally open the topic towards IP).
-
-
-A full-stack web application for organizing, storing, and editing photos in albums with robust user authentication and granular access control.
-
 ## Overview
 
 PhotoApp is built with a Spring Boot backend and Angular frontend, allowing users to create albums, upload photos, and manage their photo collections efficiently. It integrates with Cloudinary for secure cloud storage and image management.
