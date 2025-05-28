@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import photo_mgmt_backend.model.dto.album.AlbumResponseDTO;
 import photo_mgmt_backend.model.dto.album_share.AlbumShareResponseDTO;
 import photo_mgmt_backend.model.dto.album_share.ShareAlbumRequestDTO;
 import photo_mgmt_backend.model.dto.album_share.UnshareAlbumRequestDTO;
+import photo_mgmt_backend.model.dto.public_album.PublicAlbumUrlResponseDTO;
 
 import java.util.List;
 import java.util.UUID;
@@ -119,4 +121,44 @@ public interface AlbumController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("isAuthenticated()")
     List<AlbumShareResponseDTO> getAlbumShares(@PathVariable UUID albumId);
+
+    @PostMapping("/{albumId}/public")
+    @Operation(summary = "Make album public", description = "Make an album publicly accessible and generate QR code.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Album made public successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = PublicAlbumUrlResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Album not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    PublicAlbumUrlResponseDTO makeAlbumPublic(@PathVariable UUID albumId);
+
+    @DeleteMapping("/{albumId}/public")
+    @Operation(summary = "Make album private", description = "Remove public access from an album.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Album made private successfully",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = AlbumResponseDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Album not found",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    AlbumResponseDTO makeAlbumPrivate(@PathVariable UUID albumId);
+
+    @GetMapping("/{albumId}/qr-code")
+    @Operation(summary = "Download QR code", description = "Download QR code image for a public album.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "QR code downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "Album not found or not public",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExceptionBody.class)))
+    })
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("isAuthenticated()")
+    ResponseEntity<byte[]> downloadQRCode(@PathVariable UUID albumId);
 }
