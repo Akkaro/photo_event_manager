@@ -7,4 +7,9 @@ export interface AlbumResponse extends AlbumBase {
   ownerName: string;
   qrCode: string;
   createdAt: string;
+  isShared?: boolean;
+  sharedByUser?: string;
+  isPublic?: boolean;
+  publicToken?: string;
+  publicUrl?: string;
 }

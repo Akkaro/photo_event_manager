@@ -1,35 +1,92 @@
 <div class="container py-4">
-  <h2 class="mb-4">Albums</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Albums</h2>
+    <button class="btn btn-primary" (click)="createNewAlbum()">
+      <i class="fas fa-plus"></i> Create New Album
+    </button>
+  </div>
 
   <div class="mb-3">
     <app-search-bar></app-search-bar>
   </div>
 
-  @if (albums.length > 0) {
-  <table class="table table-hover table-striped">
-    <thead class="table-dark">
-    <tr>
-      <th>Album Name</th>
-      <th>Owner</th>
-      <th>Created At</th>
-    </tr>
-    </thead>
-    <tbody>
-      @for (album of albums; track album.albumId) {
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  } @else if (albums.length > 0) {
+  <div class="card">
+    <div class="card-body p-0">
+      <table class="table table-hover table-striped mb-0">
+        <thead class="table-dark">
+        <tr>
+          <th>Album Name</th>
+          <th>Owner</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th class="text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (album of albums; track album.albumId) {
   <tr>
     <td>
-      <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="text-primary">
-        {{ album.albumName }}
-      </a>
+      <div class="d-flex align-items-center">
+        <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="text-primary me-2">
+          {{ album.albumName }}
+        </a>
+        @if (album.isPublic) {
+        <span class="badge bg-success badge-sm">
+          <i class="fas fa-globe" style="font-size: 0.75rem;"></i>
+        </span>
+        }
+      </div>
     </td>
     <td>{{ album.ownerName }}</td>
+    <td>
+      @if (album.isPublic) {
+      <span class="badge bg-success">
+        <i class="fas fa-globe me-1"></i>Public
+      </span>
+      } @else {
+      <span class="badge bg-secondary">
+        <i class="fas fa-lock me-1"></i>Private
+      </span>
+      }
+    </td>
     <td>{{ album.createdAt | date:'medium' }}</td>
+    <td class="text-center">
+      <div class="btn-group">
+        <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-images"></i> View Photos
+        </a>
+        @if (loggedUser?.role === Role.ADMIN || (loggedUser?.userId === album.ownerId)) {
+        <a [routerLink]="[album.albumId]" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-edit"></i> Edit
+        </a>
+        }
+        @if (album.isPublic) {
+        <button class="btn btn-sm btn-outline-success" (click)="viewQRCode(album)" title="View QR Code">
+          <i class="fas fa-qrcode"></i>
+        </button>
+        }
+      </div>
+    </td>
   </tr>
   }
   </tbody>
 </table>
+</div>
+</div>
   } @else {
-  <div class="alert alert-info text-center mt-4">No albums available.</div>
+  <div class="alert alert-info text-center mt-4">
+    <p>No albums available.</p>
+    <button class="btn btn-primary" (click)="createNewAlbum()">
+      <i class="fas fa-plus"></i> Create Your First Album
+    </button>
+  </div>
   }
 </div>
 
@@ -40,3 +97,13 @@
 (pageChange)="onPageChange($event)"
 ></app-pagination>
 }
+
+<!-- QR Code Quick View Modal -->
+<app-qr-code-modal
+  [albumId]="selectedAlbumId"
+  [albumName]="selectedAlbumName"
+  [isPublic]="true"
+  [show]="showQRModal"
+  (close)="showQRModal = false"
+  (albumUpdated)="handleRouteParams()">
+</app-qr-code-modal>

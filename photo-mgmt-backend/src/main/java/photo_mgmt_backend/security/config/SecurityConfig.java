@@ -42,9 +42,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorize) -> authorize
+                        // Public endpoints - NO authentication required
+                        .requestMatchers("/api/v1/public/**").permitAll()
+                        .requestMatchers("/v1/public/**").permitAll()
+                        // Auth endpoints
                         .requestMatchers(SecurityConstants.AUTH_PATHS_TO_SKIP).permitAll()
+                        // Swagger endpoints
                         .requestMatchers(SecurityConstants.SWAGGER_PATHS_TO_SKIP).permitAll()
-                        .anyRequest().permitAll())
+                        // Health check
+                        .requestMatchers("/actuator/health").permitAll()
+                        // All other requests require authentication
+                        .anyRequest().authenticated())
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(authenticationEntryPoint))
                 .authenticationManager(authenticationManager)

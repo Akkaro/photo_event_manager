@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PhotoService } from '../../../core/services/photo/photo.service';
 import { ModalService } from '../../../core/services/modal/modal.service';
 import { buildPhotoFilterDTOFromSearchBy } from '../../../core/utils/rest-utils';
@@ -11,6 +11,9 @@ import { SearchBarComponent } from '../../../shared/components/search-bar/search
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { PhotoResponse } from '../models/photo-response.model';
 import {PhotoFilter} from '../models/photo-filter.model';
+import {PhotoVersionHistoryComponent} from '../../photo-versions/photo-version-history/photo-version-history.component';
+import {PhotoVersion} from '../../photo-versions/models/photo-version.model';
+import {take} from 'rxjs/operators';
 
 
 @Component({
@@ -21,7 +24,8 @@ import {PhotoFilter} from '../models/photo-filter.model';
     ReactiveFormsModule,
     CommonModule,
     SearchBarComponent,
-    PaginationComponent
+    PaginationComponent,
+    PhotoVersionHistoryComponent
   ],
   templateUrl: './photos.component.html',
   styleUrl: './photos.component.scss'
@@ -37,30 +41,30 @@ export class PhotosComponent implements OnInit {
   totalPages = -1;
   currentSearchBy = '';
   selectedFile: File | null = null;
+  showVersionHistoryModal = false;
+  selectedPhotoId = '';
   constructor(
     private photoService: PhotoService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      // Check for direct filter parameters first
       const albumId = params.get('albumId');
       const searchBy = params.get('searchBy');
       this.currentPage = +(params.get('page') ?? '0');
 
-      // If we have a direct albumId parameter, use it directly
       if (albumId) {
         const filter: PhotoFilter = {
           albumId: albumId,
           pageNumber: this.currentPage,
-          pageSize: 10 // You might want to get this from your apiConfig
+          pageSize: 10
         };
         this.fetchPhotosWithFilter(filter);
       } else {
-        // Otherwise use the searchBy parameter as before
         this.fetchPhotos(searchBy || '', this.currentPage);
       }
     });
@@ -112,7 +116,7 @@ export class PhotosComponent implements OnInit {
   }
 
   savePhoto(): void {
-    if (this.addPhotoForm.valid && this.selectedFile) {  // Add a check for selectedFile
+    if (this.addPhotoForm.valid && this.selectedFile) {
       const newPhoto = {
         ...this.addPhotoForm.value,
         photoId: this.addPhotoForm.value.photoId,
@@ -121,7 +125,7 @@ export class PhotosComponent implements OnInit {
         uploadedAt: new Date(this.addPhotoForm.value.uploadedAt).toISOString(),
         isEdited: this.addPhotoForm.value.isEdited
       };
-      this.photoService.save(newPhoto, this.selectedFile).subscribe({  // Pass the file here
+      this.photoService.save(newPhoto, this.selectedFile).subscribe({
         next: (savedPhoto) => {
           this.photos.push(savedPhoto);
           this.addPhotoForm.reset();
@@ -135,6 +139,15 @@ export class PhotosComponent implements OnInit {
     }
   }
 
+  showPhotoVersions(photoId: string): void {
+    this.selectedPhotoId = photoId;
+    this.showVersionHistoryModal = true;
+  }
+
+  onVersionReverted(version: PhotoVersion): void {
+    this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
+  }
+
   onFileChanged(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -144,5 +157,24 @@ export class PhotosComponent implements OnInit {
 
   onPageChange(page: number): void {
     console.log('Page changed to:', page);
+  }
+
+  navigateToUpload(): void {
+    this.route.queryParamMap.pipe(take(1)).subscribe(params => {
+      const currentAlbumId = params.get('albumId');
+
+      console.log('Photos component - navigating to upload with albumId:', currentAlbumId);
+
+      if (currentAlbumId) {
+        this.router.navigate(['/photos/upload'], {
+          queryParams: {
+            albumId: currentAlbumId,
+            source: 'photosPage'
+          }
+        });
+      } else {
+        this.router.navigate(['/photos/upload']);
+      }
+    });
   }
 }

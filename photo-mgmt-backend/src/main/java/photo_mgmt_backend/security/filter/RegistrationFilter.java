@@ -66,13 +66,11 @@ public class RegistrationFilter extends OncePerRequestFilter {
                     RegisterRequestDTO.class
             );
 
-            // Validate passwords match (this is also handled by @PasswordMatches but we validate here as well)
             if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
                 writeErrorResponse(response, "Passwords do not match", ExceptionCode.VALIDATION_ERROR);
                 return;
             }
 
-            // Check if user already exists
             if (userRepository.existsByEmail(registerRequest.email())) {
                 writeErrorResponse(response,
                         String.format("Email %s is already taken", registerRequest.email()),
@@ -80,20 +78,17 @@ public class RegistrationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // Create new user
             UserEntity user = UserEntity.builder()
                     .email(registerRequest.email())
                     .userName(registerRequest.userName())
                     .passwordHash(passwordEncoder.encode(registerRequest.password()))
-                    .role(Role.USER)  // Default role
+                    .role(Role.USER)
                     .createdAt(ZonedDateTime.now())
                     .build();
 
-            // Save user
             UserEntity savedUser = userRepository.save(user);
             log.info("[AUTH] User {} registered successfully", savedUser.getEmail());
 
-            // Create and write response
             RegisterResponseDTO registerResponse = new RegisterResponseDTO(
                     savedUser.getUserId(),
                     savedUser.getEmail(),

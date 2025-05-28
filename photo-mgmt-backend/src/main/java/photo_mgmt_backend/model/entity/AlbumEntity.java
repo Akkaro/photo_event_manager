@@ -34,6 +34,12 @@ public class AlbumEntity {
     @Column(name = "created_at")
     private ZonedDateTime createdAt;
 
+    @Column(name = "is_public")
+    private Boolean isPublic = false;
+
+    @Column(name = "public_token")
+    private String publicToken;
+
     @ManyToOne
     @JoinColumn(name = "owner_id", insertable = false, updatable = false)
     private UserEntity owner;

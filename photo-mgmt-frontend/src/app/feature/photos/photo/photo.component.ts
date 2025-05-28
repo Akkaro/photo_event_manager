@@ -11,9 +11,10 @@ import { ModalService } from '../../../core/services/modal/modal.service';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
-import {AlbumResponse} from '../../albums/models/album-response.model';
-import {AlbumService} from '../../../core/services/album/album.service';
-
+import { AlbumResponse } from '../../albums/models/album-response.model';
+import { AlbumService } from '../../../core/services/album/album.service';
+import { PhotoVersionHistoryComponent } from '../../photo-versions/photo-version-history/photo-version-history.component';
+import { PhotoVersion } from '../../photo-versions/models/photo-version.model';
 
 @Component({
   selector: 'app-photo',
@@ -21,7 +22,8 @@ import {AlbumService} from '../../../core/services/album/album.service';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    NgClass
+    NgClass,
+    PhotoVersionHistoryComponent
   ],
   templateUrl: './photo.component.html',
   styleUrl: './photo.component.scss'
@@ -30,11 +32,18 @@ export class PhotoComponent implements OnInit, OnDestroy {
   photoId!: string;
   photoForm!: FormGroup;
   editMode = false;
+  loading = false;
   subject$ = new Subject<void>();
   userSubscription?: Subscription;
   loggedUser?: UserResponse;
   error: string | null = null;
   private albums: AlbumResponse[] = [];
+  private deleteConfirmationPending = false;
+
+  showVersionHistoryModal = false;
+  showingOriginal = false;
+  currentImageUrl = '';
+  originalImageUrl = '';
 
   constructor(
     private fb: FormBuilder,
@@ -50,7 +59,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.fetchPhotoId();
     if (this.photoId) {
       this.fetchPhoto();
-      this.fetchAlbums(); // Add this
+      this.fetchAlbums();
     } else {
       console.error('PhotoId parameter is missing or invalid');
       this.error = 'Missing or invalid photo ID';
@@ -82,8 +91,6 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   private fetchPhotoId(): void {
-    // Get the photoId from the route params using the id parameter
-    // This parameter name should match what's defined in your routes
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.photoId = id;
@@ -94,6 +101,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   private fetchPhoto(): void {
+    this.loading = true;
     console.log('Fetching photo with ID:', this.photoId);
     this.photoService.getById(this.photoId).subscribe({
       next: (photo) => {
@@ -119,6 +127,10 @@ export class PhotoComponent implements OnInit, OnDestroy {
             { value: photo.path, disabled: true },
             [ Validators.required ]
           ],
+          originalPath: [
+            { value: photo.originalPath, disabled: true },
+            [ Validators.required ]
+          ],
           isEdited: [
             { value: photo.isEdited, disabled: true },
             [ Validators.required ]
@@ -128,10 +140,17 @@ export class PhotoComponent implements OnInit, OnDestroy {
             [ Validators.required ]
           ]
         });
+        this.photoForm.disable();
+
+        this.currentImageUrl = photo.path;
+        this.originalImageUrl = photo.originalPath;
+
+        this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
         console.error('Error fetching photo:', error);
         this.error = `Failed to load photo: ${error.message}`;
+        this.loading = false;
         this.modalService.open('Error', `Failed to load photo: ${error.error?.message || error.message}`, ModalType.ERROR);
       }
     });
@@ -143,7 +162,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   toggleEdit(): void {
-    if (this.photoForm.invalid) {
+    if (this.editMode && this.photoForm.invalid) {
       this.photoForm.markAllAsTouched();
       return;
     }
@@ -151,44 +170,76 @@ export class PhotoComponent implements OnInit, OnDestroy {
     this.editMode = !this.editMode;
 
     if (this.editMode) {
-      this.photoForm.enable();
-      this.photoForm.get('photoId')?.disable();
+      this.photoForm.get('photoName')?.enable();
     } else {
       const updatedPhoto = {
-        ...this.photoForm.getRawValue(),
-        uploadedAt: new Date(this.photoForm.value.uploadedAt).toISOString()
+        photoName: this.photoForm.get('photoName')?.value,
+        albumId: this.photoForm.get('albumId')?.value
       };
 
-      this.photoService.update(updatedPhoto.photoId, updatedPhoto).subscribe({
+      this.photoService.update(this.photoId, updatedPhoto).subscribe({
         next: () => {
           this.photoForm.disable();
           this.modalService.open('Success', 'Photo has been successfully updated!', ModalType.SUCCESS);
         },
         error: (error: HttpErrorResponse) => {
-          this.modalService.open('Error', error.error.message, ModalType.ERROR);
+          this.modalService.open('Error', error.error?.message || 'Failed to update photo', ModalType.ERROR);
+          this.photoForm.disable();
+          this.editMode = false;
         }
       });
     }
   }
 
+  editPhoto(): void {
+    this.router.navigate([`/${ROUTES.PHOTOS}`, this.photoId, 'edit']);
+  }
+
   deletePhoto(): void {
+    this.deleteConfirmationPending = true;
     this.modalService.open('Delete', 'Are you sure you want to delete this photo?', ModalType.CONFIRM);
   }
+
 
   private watchPhotoDeletion(): void {
     this.modalService.confirm$
       .pipe(takeUntil(this.subject$))
-      .subscribe(() => {
-        this.photoService.delete(this.photoId).subscribe({
-          next: () => {
-            this.modalService.open('Deleted', 'Photo has been deleted.', ModalType.SUCCESS);
-            this.router.navigateByUrl(ROUTES.PHOTOS).then();
-          },
-          error: (error: HttpErrorResponse) => {
-            this.modalService.open('Error', error.error.message, ModalType.ERROR);
-          }
-        });
+      .subscribe((action) => {
+        if (this.deleteConfirmationPending) {
+          this.deleteConfirmationPending = false;
+
+          this.photoService.delete(this.photoId).subscribe({
+            next: () => {
+              this.modalService.open('Deleted', 'Photo has been deleted.', ModalType.SUCCESS);
+              this.router.navigateByUrl(ROUTES.PHOTOS).then();
+            },
+            error: (error: HttpErrorResponse) => {
+              this.modalService.open('Error', error.error.message, ModalType.ERROR);
+            }
+          });
+        }
       });
+  }
+
+  toggleOriginal(): void {
+    this.showingOriginal = !this.showingOriginal;
+    this.currentImageUrl = this.showingOriginal ? this.originalImageUrl : this.photoForm.get('path')?.value;
+  }
+
+  showVersionHistory(): void {
+    this.showVersionHistoryModal = true;
+  }
+
+  onVersionReverted(version: PhotoVersion): void {
+
+    console.log('Version reverted - starting photo refresh');
+    console.log('Current photo before refresh:', this.photoForm);
+    console.log('Current photoId:', this.photoId);
+
+    setTimeout(() => {
+      this.fetchPhoto();
+    }, 500);
+    this.modalService.open('Success', `Photo reverted to ${version.versionNumber === 0 ? 'original' : 'version ' + version.versionNumber}!`, ModalType.SUCCESS);
   }
 
   protected readonly Role = Role;

@@ -9,5 +9,8 @@ public record AlbumResponseDTO(
         UUID ownerId,
         String ownerName,
         String qrCode,
-        ZonedDateTime createdAt
+        ZonedDateTime createdAt,
+        Boolean isPublic,
+        String publicToken,
+        String publicUrl
 ) { }

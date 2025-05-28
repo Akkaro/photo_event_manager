@@ -9,6 +9,7 @@ public record PhotoResponseDTO(
         UUID albumId,
         UUID ownerId,
         String path,
+        String originalPath,
         ZonedDateTime uploadedAt,
         Boolean isEdited
 ) { }

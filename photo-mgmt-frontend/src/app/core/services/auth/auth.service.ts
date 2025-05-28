@@ -30,7 +30,6 @@ export class AuthService implements OnInit {
   }
 
   register(registerRequest: RegisterRequest): Observable<any> {
-    // Combine the register request with the password
     const payload = {
       ...registerRequest
     };
@@ -68,7 +67,6 @@ export class AuthService implements OnInit {
       : null;
   }
 
-  // cookieService.delete('jwt-token') doesn't work 100%
   private clearCookies(): void {
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {

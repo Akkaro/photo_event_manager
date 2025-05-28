@@ -1,27 +1,57 @@
-<!-- src/app/feature/photos/photo/photo.component.html -->
-
 <div class="container mt-5">
-  @if (photoForm) {
+  @if (loading) {
+  <div class="text-center my-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+  } @else if (error) {
+  <div class="alert alert-danger text-center mt-4">{{ error }}</div>
+  } @else if (photoForm) {
   <div class="row">
     <div class="col-md-6">
       <div class="card mb-4">
-        <div class="card-body p-0">
-          <img [src]="photoForm.get('path')?.value" class="img-fluid" [alt]="photoForm.get('photoName')?.value">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Current Image</h6>
+          <div class="btn-group btn-group-sm">
+            @if (showingOriginal) {
+  <button class="btn btn-outline-secondary" (click)="toggleOriginal()">
+    <i class="fas fa-eye"></i> Show Current
+  </button>
+  } @else {
+  <button class="btn btn-outline-info" (click)="toggleOriginal()">
+    <i class="fas fa-history"></i> Show Original
+  </button>
+  }
+  <button class="btn btn-outline-primary" (click)="showVersionHistory()">
+    <i class="fas fa-clock"></i> Version History
+  </button>
+</div>
+</div>
+<div class="card-body p-0">
+<div class="position-relative">
+  <img [src]="currentImageUrl" class="img-fluid" [alt]="photoForm.get('photoName')?.value">
+  @if (showingOriginal) {
+  <span class="badge bg-info position-absolute top-0 start-0 m-2">Original</span>
+  } @else if (photoForm.get('isEdited')?.value) {
+  <span class="badge bg-success position-absolute top-0 start-0 m-2">Edited</span>
+  }
+  </div>
+</div>
+</div>
+</div>
+<div class="col-md-6">
+<form [formGroup]="photoForm" class="card">
+<div class="card-header text-center">
+  <i class="fas fa-image fa-3x mb-2"></i><br/>
+  <strong>{{ photoForm.get('photoName')?.value }}</strong>
         </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <form [formGroup]="photoForm" class="card">
-        <div class="card-header text-center">
-          <i class="fas fa-image fa-3x mb-2"></i><br/>
-          <strong>{{ photoForm.get('photoName')?.value }}</strong>
-          </div>
 
-          <div class="card-body">
-            <div class="mb-2">
-              <label class="form-label">Name:</label>
-              <input type="text" class="form-control" formControlName="photoName"/>
-              @if (photoForm.get('photoName')?.invalid && photoForm.get('photoName')?.touched) {
+        <div class="card-body">
+          <div class="mb-2">
+            <label class="form-label">Name:</label>
+            <input type="text" class="form-control" formControlName="photoName"/>
+            @if (photoForm.get('photoName')?.invalid && photoForm.get('photoName')?.touched) {
   <div class="text-danger small">Name is required.</div>
   }
   </div>
@@ -37,33 +67,58 @@
   </div>
 
   <div class="mb-2">
-    <label class="form-label">Edited:</label>
+    <label class="form-label">Status:</label>
     <div class="form-check">
       <input class="form-check-input" type="checkbox" formControlName="isEdited" id="isEditedCheckbox" [disabled]="true">
       <label class="form-check-label" for="isEditedCheckbox">
-  {{ photoForm.get('isEdited')?.value ? 'Yes' : 'No' }}
+  {{ photoForm.get('isEdited')?.value ? 'Edited' : 'Original' }}
   </label>
 </div>
 </div>
-</div>
 
-<div class="card-footer d-flex justify-content-between">
-@if (loggedUser?.role == Role.ADMIN) {
+@if (photoForm.get('isEdited')?.value) {
+  <div class="mb-2">
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle"></i>
+      <small>This photo has been edited. You can view all versions in the version history.</small>
+    </div>
+  </div>
+  }
+  </div>
+
+  <div class="card-footer d-flex justify-content-between">
+    <div class="btn-group">
+      @if (loggedUser?.role == Role.ADMIN) {
   <button (click)="deletePhoto()" class="btn btn-outline-danger" type="button">
     <i class="fas fa-trash"></i> Delete
   </button>
   }
-  @if (loggedUser?.role == Role.ADMIN || loggedUser?.role == Role.MODERATOR) {
-  <button (click)="toggleEdit()" [disabled]="photoForm.invalid" class="btn btn-outline-primary" type="button">
-    <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit' }}
-  </button>
-  }
   </div>
+
+  <div class="btn-group">
+    <button (click)="showVersionHistory()" class="btn btn-outline-info" type="button">
+      <i class="fas fa-history"></i> Version History
+    </button>
+    <button (click)="editPhoto()" class="btn btn-outline-success" type="button">
+      <i class="fas fa-magic"></i> Edit Photo
+    </button>
+    <button (click)="toggleEdit()" [disabled]="photoForm.invalid && editMode" class="btn btn-outline-primary" type="button">
+      <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit Info' }}
+  </button>
+</div>
+</div>
 </form>
 </div>
 </div>
-  } @else if (error) {
-  <div class="alert alert-danger text-center mt-4">{{ error }}</div>
+
+<!-- Version History Modal -->
+<app-photo-version-history
+[photoId]="photoId"
+[show]="showVersionHistoryModal"
+(close)="showVersionHistoryModal = false"
+(versionReverted)="onVersionReverted($event)">
+</app-photo-version-history>
+
   } @else {
   <div class="alert alert-info text-center mt-4">Loading photo details...</div>
   }

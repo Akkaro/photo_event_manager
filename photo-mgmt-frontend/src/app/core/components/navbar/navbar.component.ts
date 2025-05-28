@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ROUTES } from '../../config/routes.enum';
 import { AuthService } from '../../services/auth/auth.service';
+import { Role } from '../../../feature/profile/models/user-role.enum';
 
 
 @Component({
@@ -16,16 +17,20 @@ import { AuthService } from '../../services/auth/auth.service';
 export class NavbarComponent implements OnInit, OnDestroy {
 
   protected readonly ROUTES = ROUTES;
-  protected readonly REQUIRED_ROLES = [ 'ADMIN', 'MODERATOR' ];
+  protected readonly Role = Role;
 
   hasPhotoTablePermission: boolean = false;
+  userRole?: Role;
   userSubscription?: Subscription;
 
   constructor(private authService: AuthService) { }
 
   ngOnInit(): void {
     this.userSubscription = this.authService.user$
-      .subscribe(response => this.hasPhotoTablePermission = this.REQUIRED_ROLES.includes(response?.role));
+      .subscribe(response => {
+        this.userRole = response?.role;
+        this.hasPhotoTablePermission = [Role.ADMIN, Role.MODERATOR].includes(response?.role as Role);
+      });
   }
 
   ngOnDestroy(): void {

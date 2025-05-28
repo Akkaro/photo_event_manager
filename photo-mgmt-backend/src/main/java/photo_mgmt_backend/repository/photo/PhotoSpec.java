@@ -31,22 +31,18 @@ public class PhotoSpec extends EntitySpec<PhotoEntity, PhotoFilterDTO> {
         return (Root<PhotoEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Add album ID filter
             if (filter.albumId() != null) {
                 predicates.add(cb.equal(root.get("albumId"), filter.albumId()));
             }
 
-            // Add owner ID filter
             if (filter.ownerId() != null) {
                 predicates.add(cb.equal(root.get("ownerId"), filter.ownerId()));
             }
 
-            // Add isEdited filter
             if (filter.isEdited() != null) {
                 predicates.add(cb.equal(root.get("isEdited"), filter.isEdited()));
             }
 
-            // Add uploadedAt filter
             if (filter.uploadedAt() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("uploadedAt"), filter.uploadedAt()));
             }

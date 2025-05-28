@@ -13,7 +13,6 @@ export const hasAuthorization: CanActivateFn = (route: ActivatedRouteSnapshot) =
   const isSelf = route.data?.['isSelf'] ?? false;
   const userIdFromParams = route.params['id'];
 
-  // fetching the user sync won't work (authService.userSubject.value);
   return authService.userSubject.pipe(
     take(1),
     map(user => (requiredRoles.includes(user?.role) || (isSelf && user?.id === userIdFromParams) ? true : router.parseUrl(ROUTES.FORBIDDEN)))

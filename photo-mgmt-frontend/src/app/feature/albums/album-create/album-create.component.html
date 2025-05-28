@@ -1,0 +1,39 @@
+<div class="container py-4">
+  <h2 class="mb-4">Create New Album</h2>
+
+  <form [formGroup]="albumForm" (ngSubmit)="onSubmit()" class="card">
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="albumName" class="form-label">Album Name</label>
+        <input type="text" id="albumName" class="form-control" formControlName="albumName">
+        @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
+        <div class="text-danger mt-1">
+          @if (albumForm.get('albumName')?.errors?.['required']) {
+        Album name is required.
+        }
+        @if (albumForm.get('albumName')?.errors?.['minlength']) {
+        Album name must be at least 2 characters.
+        }
+        @if (albumForm.get('albumName')?.errors?.['maxlength']) {
+        Album name cannot exceed 30 characters.
+        }
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="card-footer d-flex justify-content-between">
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()" [disabled]="loading">
+        <i class="fas fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="albumForm.invalid || loading">
+        @if (loading) {
+        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        Creating...
+        } @else {
+        <i class="fas fa-plus"></i> Create Album
+        }
+      </button>
+    </div>
+  </form>
+</div>

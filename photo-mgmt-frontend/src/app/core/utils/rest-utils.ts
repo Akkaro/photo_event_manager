@@ -1,7 +1,7 @@
 import { HttpParams } from '@angular/common/http';
 import { PhotoFilter } from '../../feature/photos/models/photo-filter.model';
 import { apiConfig } from '../config/api-config';
-import {AlbumFilter} from '../../feature/albums/models/album-filter.model';
+import { AlbumFilter } from '../../feature/albums/models/album-filter.model';
 
 
 export const buildPhotoFilterDTOFromSearchBy = (searchBy: string | null, page: number): PhotoFilter => {
@@ -27,7 +27,12 @@ export const buildPhotoFilterDTOFromSearchBy = (searchBy: string | null, page: n
 };
 
 export const buildPhotoQueryParams = (filter?: PhotoFilter): HttpParams => {
-  return Object.entries(filter || {})
+  const safeFilter = filter || {
+    pageNumber: 0,
+    pageSize: apiConfig.pageSize
+  };
+
+  return Object.entries(safeFilter)
     .reduce((params, [ key, value ]) => value != null && value !== '' ? params.set(key, String(value)) : params,
       new HttpParams()
     );
@@ -54,7 +59,12 @@ export const buildAlbumFilterDTOFromSearchBy = (searchBy: string | null, page: n
 };
 
 export const buildAlbumQueryParams = (filter?: AlbumFilter): HttpParams => {
-  return Object.entries(filter || {})
+  const safeFilter = filter || {
+    pageNumber: 0,
+    pageSize: apiConfig.pageSize
+  };
+
+  return Object.entries(safeFilter)
     .reduce((params, [ key, value ]) => value != null && value !== '' ? params.set(key, String(value)) : params,
       new HttpParams()
     );

@@ -1,5 +1,3 @@
-// src/app/feature/photos/photo-upload/photo-upload.component.spec.ts
-
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -19,13 +17,11 @@ describe('PhotoUploadComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    // Create spies for the services
     photoServiceSpy = jasmine.createSpyObj('PhotoService', ['save']);
     albumServiceSpy = jasmine.createSpyObj('AlbumService', ['getAll']);
     modalServiceSpy = jasmine.createSpyObj('ModalService', ['open']);
     routerSpy = jasmine.createSpyObj('Router', ['navigateByUrl']);
 
-    // Mock service responses
     albumServiceSpy.getAll.and.returnValue(of({
       pageNumber: 0,
       pageSize: 10,
@@ -72,45 +68,36 @@ describe('PhotoUploadComponent', () => {
   });
 
   it('should set preview when file is selected', () => {
-    // Mock file reader and file
     const mockFile = new File(['dummy content'], 'test-image.png', { type: 'image/png' });
     const mockFileReader = jasmine.createSpyObj('FileReader', ['readAsDataURL', 'onload']);
     spyOn(window, 'FileReader').and.returnValue(mockFileReader);
 
-    // Create mock event
     const mockEvent = {
       target: {
         files: [mockFile]
       }
     } as unknown as Event;
 
-    // Call the method
     component.onFileChanged(mockEvent);
 
-    // Verify file was set
     expect(component.selectedFile).toBe(mockFile);
   });
 
   it('should not submit form when invalid', () => {
-    // Set invalid form
     component.uploadForm.controls['photoName'].setValue('');
     component.selectedFile = null;
 
-    // Call submit
     component.onSubmit();
 
-    // Verify services not called
     expect(photoServiceSpy.save).not.toHaveBeenCalled();
     expect(modalServiceSpy.open).toHaveBeenCalledWith('Error', 'Please select an image to upload', ModalType.ERROR);
   });
 
   it('should submit valid form and handle success', () => {
-    // Set valid form and file
     component.uploadForm.controls['photoName'].setValue('Test Photo');
     component.uploadForm.controls['albumId'].setValue('10000000-0000-0000-0000-000000000000');
     component.selectedFile = new File(['dummy content'], 'test-image.png', { type: 'image/png' });
 
-    // Mock service response
     photoServiceSpy.save.and.returnValue(of({
       photoId: '20000000-0000-0000-0000-000000000000',
       photoName: 'Test Photo',
@@ -121,31 +108,25 @@ describe('PhotoUploadComponent', () => {
       isEdited: false
     }));
 
-    // Call submit
     component.onSubmit();
 
-    // Verify services called
     expect(photoServiceSpy.save).toHaveBeenCalled();
     expect(modalServiceSpy.open).toHaveBeenCalledWith('Success', 'Photo uploaded successfully!', ModalType.SUCCESS);
     expect(routerSpy.navigateByUrl).toHaveBeenCalled();
   });
 
   it('should handle error when saving photo', () => {
-    // Set valid form and file
     component.uploadForm.controls['photoName'].setValue('Test Photo');
     component.uploadForm.controls['albumId'].setValue('10000000-0000-0000-0000-000000000000');
     component.selectedFile = new File(['dummy content'], 'test-image.png', { type: 'image/png' });
 
-    // Mock service error
     const errorResponse = {
       error: { message: 'Upload failed' }
     };
     photoServiceSpy.save.and.returnValue(throwError(() => errorResponse));
 
-    // Call submit
     component.onSubmit();
 
-    // Verify error handling
     expect(photoServiceSpy.save).toHaveBeenCalled();
     expect(modalServiceSpy.open).toHaveBeenCalledWith('Error', 'Upload failed', ModalType.ERROR);
     expect(component.loading).toBeFalse();

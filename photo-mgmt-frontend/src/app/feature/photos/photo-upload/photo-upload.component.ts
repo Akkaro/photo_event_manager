@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PhotoService } from '../../../core/services/photo/photo.service';
 import { AlbumService } from '../../../core/services/album/album.service';
 import { ModalService } from '../../../core/services/modal/modal.service';
@@ -25,16 +25,33 @@ export class PhotoUploadComponent implements OnInit {
   imagePreview: string | null = null;
   albums: AlbumResponse[] = [];
   loading = false;
+  preselectedAlbumId: string | null = null;
+  preselectedAlbumName: string | null = null;
+  isAlbumLocked = false;
 
   constructor(
     private fb: FormBuilder,
     private photoService: PhotoService,
     private albumService: AlbumService,
     private modalService: ModalService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      console.log('All query params:', params.keys.map(key => `${key}=${params.get(key)}`));
+
+      this.preselectedAlbumId = params.get('albumId');
+      console.log('Raw preselectedAlbumId from params:', this.preselectedAlbumId);
+
+      this.isAlbumLocked = !!this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '';
+
+      console.log('Upload component - preselectedAlbumId:', this.preselectedAlbumId);
+      console.log('Upload component - isAlbumLocked:', this.isAlbumLocked);
+      console.log('Upload component - trimmed and truthy check:', !!this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '');
+    });
+
     this.buildForm();
     this.loadAlbums();
   }
@@ -42,22 +59,60 @@ export class PhotoUploadComponent implements OnInit {
   private buildForm(): void {
     this.uploadForm = this.fb.group({
       photoName: ['', [Validators.required, Validators.minLength(3)]],
-      albumId: ['', [Validators.required]]
+      albumId: [this.preselectedAlbumId || '', [Validators.required]]
     });
   }
 
   private loadAlbums(): void {
+    console.log('Loading albums, preselectedAlbumId at load time:', this.preselectedAlbumId);
+
     this.albumService.getAll().subscribe({
       next: (response) => {
         this.albums = response.elements;
-        // Set default selected album if available
-        if (this.albums.length > 0) {
-          this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
+        console.log('Loaded albums:', this.albums.map(a => ({ id: a.albumId, name: a.albumName })));
+
+        if (this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '') {
+          console.log('Processing preselected album:', this.preselectedAlbumId);
+
+          const preselectedAlbum = this.albums.find(album => album.albumId === this.preselectedAlbumId);
+          console.log('Found preselected album:', preselectedAlbum);
+
+          if (preselectedAlbum) {
+            this.preselectedAlbumName = preselectedAlbum.albumName;
+            this.uploadForm.get('albumId')?.setValue(this.preselectedAlbumId);
+            this.isAlbumLocked = true;
+            console.log('Album locked successfully:', {
+              id: this.preselectedAlbumId,
+              name: this.preselectedAlbumName,
+              locked: this.isAlbumLocked
+            });
+          } else {
+            console.warn('Preselected album not found in loaded albums');
+            console.log('Available album IDs:', this.albums.map(a => a.albumId));
+            console.log('Looking for:', this.preselectedAlbumId);
+
+            this.isAlbumLocked = false;
+            this.preselectedAlbumId = null;
+            this.preselectedAlbumName = null;
+          }
+        } else {
+          console.log('No preselected album or empty string, showing dropdown');
+
+          if (this.albums.length > 0) {
+            this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
+          }
         }
+
+        console.log('Final state after loadAlbums:', {
+          isAlbumLocked: this.isAlbumLocked,
+          preselectedAlbumName: this.preselectedAlbumName,
+          preselectedAlbumId: this.preselectedAlbumId,
+          formValue: this.uploadForm.get('albumId')?.value
+        });
       },
       error: (error) => {
-        this.modalService.open('Error', 'Failed to load albums', ModalType.ERROR);
         console.error('Error loading albums:', error);
+        this.modalService.open('Error', 'Failed to load albums', ModalType.ERROR);
       }
     });
   }
@@ -68,7 +123,6 @@ export class PhotoUploadComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       this.selectedFile = input.files[0];
 
-      // Create image preview
       const reader = new FileReader();
       reader.onload = () => {
         this.imagePreview = reader.result as string;
@@ -93,7 +147,14 @@ export class PhotoUploadComponent implements OnInit {
       next: (response) => {
         this.loading = false;
         this.modalService.open('Success', 'Photo uploaded successfully!', ModalType.SUCCESS);
-        this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+
+        if (this.preselectedAlbumId) {
+          this.router.navigate([`/${ROUTES.PHOTOS}`], {
+            queryParams: { albumId: this.preselectedAlbumId }
+          });
+        } else {
+          this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+        }
       },
       error: (error) => {
         this.loading = false;
@@ -104,6 +165,12 @@ export class PhotoUploadComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+    if (this.preselectedAlbumId) {
+      this.router.navigate([`/${ROUTES.PHOTOS}`], {
+        queryParams: { albumId: this.preselectedAlbumId }
+      });
+    } else {
+      this.router.navigateByUrl(`/${ROUTES.PHOTOS}`);
+    }
   }
 }

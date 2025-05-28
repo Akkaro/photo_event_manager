@@ -35,8 +35,59 @@ public class PhotoEditEntity {
     @Column(name = "contrast")
     private BigDecimal contrast;
 
+    @Column(name = "gamma")
+    private BigDecimal gamma;
+
+    @Column(name = "histogram_equalization")
+    private Boolean histogramEqualization;
+
+    @Column(name = "blur_kernel_size")
+    private Integer blurKernelSize;
+
+    @Column(name = "blur_sigma")
+    private BigDecimal blurSigma;
+
+    @Column(name = "edge_detection_type")
+    private String edgeDetectionType;
+
+    @Column(name = "morphological_operation")
+    private String morphologicalOperation;
+
+    @Column(name = "morphological_kernel_size")
+    private Integer morphologicalKernelSize;
+
+    @Column(name = "morphological_iterations")
+    private Integer morphologicalIterations;
+
+    @Column(name = "noise_reduction")
+    private String noiseReduction;
+
+    @Column(name = "threshold_value")
+    private Integer thresholdValue;
+
+    @Column(name = "threshold_type")
+    private String thresholdType;
+
+    @Column(name = "auto_threshold")
+    private Boolean autoThreshold;
+
+    @Column(name = "hsv_conversion")
+    private Boolean hsvConversion;
+
+    @Column(name = "combined_processing")
+    private Boolean combinedProcessing;
+
     @Column(name = "edited_at")
     private ZonedDateTime editedAt;
+
+    @Column(name = "version_number")
+    private Integer versionNumber;
+
+    @Column(name = "previous_version_url")
+    private String previousVersionUrl;
+
+    @Column(name = "result_version_url")
+    private String resultVersionUrl;
 
     @ManyToOne
     @JoinColumn(name = "photo_id", insertable = false, updatable = false)
