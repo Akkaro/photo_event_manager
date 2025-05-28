@@ -1,3 +1,4 @@
+// photo-mgmt-frontend/src/app/feature/photos/photo-upload/photo-upload.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,6 +27,8 @@ export class PhotoUploadComponent implements OnInit {
   albums: AlbumResponse[] = [];
   loading = false;
   preselectedAlbumId: string | null = null;
+  preselectedAlbumName: string | null = null;
+  isAlbumLocked = false; // NEW: Flag to determine if album selection is locked
 
   constructor(
     private fb: FormBuilder,
@@ -40,6 +43,11 @@ export class PhotoUploadComponent implements OnInit {
     // Check for album ID in query params
     this.route.queryParamMap.subscribe(params => {
       this.preselectedAlbumId = params.get('albumId');
+      // If we have a preselected album ID, lock the album selection
+      this.isAlbumLocked = !!this.preselectedAlbumId;
+
+      console.log('Upload component - preselectedAlbumId:', this.preselectedAlbumId);
+      console.log('Upload component - isAlbumLocked:', this.isAlbumLocked);
     });
 
     this.buildForm();
@@ -58,14 +66,30 @@ export class PhotoUploadComponent implements OnInit {
       next: (response) => {
         this.albums = response.elements;
 
-        // If we have albums but no preselected album, set the first one as default
-        if (this.albums.length > 0 && !this.preselectedAlbumId) {
-          this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
+        if (this.preselectedAlbumId) {
+          // Find the preselected album to get its name
+          const preselectedAlbum = this.albums.find(album => album.albumId === this.preselectedAlbumId);
+          if (preselectedAlbum) {
+            this.preselectedAlbumName = preselectedAlbum.albumName;
+            this.uploadForm.get('albumId')?.setValue(this.preselectedAlbumId);
+            this.isAlbumLocked = true; // Ensure it's locked
+            console.log('Album found and locked:', preselectedAlbum.albumName);
+          } else {
+            // If preselected album not found, unlock the selection
+            console.log('Preselected album not found, unlocking');
+            this.isAlbumLocked = false;
+            this.preselectedAlbumId = null;
+            this.preselectedAlbumName = null;
+          }
+        } else {
+          // No preselected album, set the first one as default if available
+          if (this.albums.length > 0) {
+            this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
+          }
+          console.log('No preselected album, showing dropdown');
         }
-        // If we have a preselected album ID, make sure it's set in the form
-        else if (this.preselectedAlbumId) {
-          this.uploadForm.get('albumId')?.setValue(this.preselectedAlbumId);
-        }
+
+        console.log('Final state - isAlbumLocked:', this.isAlbumLocked, 'preselectedAlbumName:', this.preselectedAlbumName);
       },
       error: (error) => {
         this.modalService.open('Error', 'Failed to load albums', ModalType.ERROR);

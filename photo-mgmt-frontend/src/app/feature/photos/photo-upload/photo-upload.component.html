@@ -20,15 +20,37 @@
 
       <div class="mb-3">
         <label for="albumId" class="form-label">Album</label>
+
+        <!-- Debug info (remove this later) -->
+        <small class="text-info d-block mb-2">
+          Debug: isAlbumLocked={{ isAlbumLocked }}, preselectedAlbumName={{ preselectedAlbumName }}
+        </small>
+
+        @if (isAlbumLocked === true && preselectedAlbumName) {
+        <!-- Show readonly album name when locked -->
+        <input
+          type="text"
+          id="albumName"
+          class="form-control"
+          [value]="preselectedAlbumName"
+          readonly>
+        <small class="text-muted">
+          <i class="fas fa-lock me-1"></i>
+          Album is pre-selected from the album details page
+        </small>
+        } @else {
+        <!-- Show dropdown when not locked -->
         <select id="albumId" class="form-select" formControlName="albumId">
           @if (albums.length === 0) {
-          <option value="" disabled>No albums available</option>
-          } @else {
-          @for (album of albums; track album.albumId) {
-          <option [value]="album.albumId">{{ album.albumName }}</option>
-          }
-          }
+        <option value="" disabled>No albums available</option>
+        } @else {
+        @for (album of albums; track album.albumId) {
+        <option [value]="album.albumId">{{ album.albumName }}</option>
+        }
+        }
         </select>
+        }
+
         @if (uploadForm.get('albumId')?.invalid && uploadForm.get('albumId')?.touched) {
         <div class="text-danger mt-1">
           Please select an album.
