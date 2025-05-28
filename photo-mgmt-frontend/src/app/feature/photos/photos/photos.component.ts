@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PhotoService } from '../../../core/services/photo/photo.service';
 import { ModalService } from '../../../core/services/modal/modal.service';
 import { buildPhotoFilterDTOFromSearchBy } from '../../../core/utils/rest-utils';
@@ -13,6 +13,7 @@ import { PhotoResponse } from '../models/photo-response.model';
 import {PhotoFilter} from '../models/photo-filter.model';
 import {PhotoVersionHistoryComponent} from '../../photo-versions/photo-version-history/photo-version-history.component';
 import {PhotoVersion} from '../../photo-versions/models/photo-version.model';
+import {take} from 'rxjs/operators';
 
 
 @Component({
@@ -46,7 +47,8 @@ export class PhotosComponent implements OnInit {
     private photoService: PhotoService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -159,5 +161,27 @@ export class PhotosComponent implements OnInit {
 
   onPageChange(page: number): void {
     console.log('Page changed to:', page);
+  }
+
+  navigateToUpload(): void {
+    // Get the current album ID from the route
+    this.route.queryParamMap.pipe(take(1)).subscribe(params => {
+      const currentAlbumId = params.get('albumId');
+
+      console.log('Photos component - navigating to upload with albumId:', currentAlbumId);
+
+      if (currentAlbumId) {
+        // Navigate to upload with the album ID preserved
+        this.router.navigate(['/photos/upload'], {
+          queryParams: {
+            albumId: currentAlbumId,
+            source: 'photosPage'
+          }
+        });
+      } else {
+        // Navigate to upload without album ID (show all albums)
+        this.router.navigate(['/photos/upload']);
+      }
+    });
   }
 }

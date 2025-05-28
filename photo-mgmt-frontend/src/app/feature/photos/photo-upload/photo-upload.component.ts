@@ -40,14 +40,19 @@ export class PhotoUploadComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Check for album ID in query params
+    // ENHANCED: More detailed logging and route param handling
     this.route.queryParamMap.subscribe(params => {
+      console.log('All query params:', params.keys.map(key => `${key}=${params.get(key)}`));
+
       this.preselectedAlbumId = params.get('albumId');
+      console.log('Raw preselectedAlbumId from params:', this.preselectedAlbumId);
+
       // If we have a preselected album ID, lock the album selection
-      this.isAlbumLocked = !!this.preselectedAlbumId;
+      this.isAlbumLocked = !!this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '';
 
       console.log('Upload component - preselectedAlbumId:', this.preselectedAlbumId);
       console.log('Upload component - isAlbumLocked:', this.isAlbumLocked);
+      console.log('Upload component - trimmed and truthy check:', !!this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '');
     });
 
     this.buildForm();
@@ -62,38 +67,57 @@ export class PhotoUploadComponent implements OnInit {
   }
 
   private loadAlbums(): void {
+    console.log('Loading albums, preselectedAlbumId at load time:', this.preselectedAlbumId);
+
     this.albumService.getAll().subscribe({
       next: (response) => {
         this.albums = response.elements;
+        console.log('Loaded albums:', this.albums.map(a => ({ id: a.albumId, name: a.albumName })));
 
-        if (this.preselectedAlbumId) {
+        if (this.preselectedAlbumId && this.preselectedAlbumId.trim() !== '') {
+          console.log('Processing preselected album:', this.preselectedAlbumId);
+
           // Find the preselected album to get its name
           const preselectedAlbum = this.albums.find(album => album.albumId === this.preselectedAlbumId);
+          console.log('Found preselected album:', preselectedAlbum);
+
           if (preselectedAlbum) {
             this.preselectedAlbumName = preselectedAlbum.albumName;
             this.uploadForm.get('albumId')?.setValue(this.preselectedAlbumId);
-            this.isAlbumLocked = true; // Ensure it's locked
-            console.log('Album found and locked:', preselectedAlbum.albumName);
+            this.isAlbumLocked = true;
+            console.log('Album locked successfully:', {
+              id: this.preselectedAlbumId,
+              name: this.preselectedAlbumName,
+              locked: this.isAlbumLocked
+            });
           } else {
+            console.warn('Preselected album not found in loaded albums');
+            console.log('Available album IDs:', this.albums.map(a => a.albumId));
+            console.log('Looking for:', this.preselectedAlbumId);
+
             // If preselected album not found, unlock the selection
-            console.log('Preselected album not found, unlocking');
             this.isAlbumLocked = false;
             this.preselectedAlbumId = null;
             this.preselectedAlbumName = null;
           }
         } else {
+          console.log('No preselected album or empty string, showing dropdown');
           // No preselected album, set the first one as default if available
           if (this.albums.length > 0) {
             this.uploadForm.get('albumId')?.setValue(this.albums[0].albumId);
           }
-          console.log('No preselected album, showing dropdown');
         }
 
-        console.log('Final state - isAlbumLocked:', this.isAlbumLocked, 'preselectedAlbumName:', this.preselectedAlbumName);
+        console.log('Final state after loadAlbums:', {
+          isAlbumLocked: this.isAlbumLocked,
+          preselectedAlbumName: this.preselectedAlbumName,
+          preselectedAlbumId: this.preselectedAlbumId,
+          formValue: this.uploadForm.get('albumId')?.value
+        });
       },
       error: (error) => {
-        this.modalService.open('Error', 'Failed to load albums', ModalType.ERROR);
         console.error('Error loading albums:', error);
+        this.modalService.open('Error', 'Failed to load albums', ModalType.ERROR);
       }
     });
   }

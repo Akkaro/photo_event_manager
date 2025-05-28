@@ -63,6 +63,7 @@ export class AlbumComponent implements OnInit, OnDestroy {
 
   private fetchAlbumId(): void {
     this.albumId = this.route.snapshot.paramMap.get('id')!;
+    console.log('fetchAlbumId - setting albumId to:', this.albumId); // Add this line
     if (!this.albumId) {
       this.error = 'Album ID not found';
       this.modalService.open('Error', 'Album ID not found', ModalType.ERROR);
