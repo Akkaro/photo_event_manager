@@ -11,8 +11,8 @@ import { ModalService } from '../../../core/services/modal/modal.service';
 import { ModalType } from '../../../shared/models/modal-type.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
 import { Role } from '../../profile/models/user-role.enum';
-import {AlbumShareComponent} from '../../album-shares/album-share/album-share.component';
-
+import { AlbumShareComponent } from '../../album-shares/album-share/album-share.component';
+import { QrCodeModalComponent } from '../components/qr-code-modal/qr-code-modal.component';
 
 @Component({
   selector: 'app-album',
@@ -22,7 +22,8 @@ import {AlbumShareComponent} from '../../album-shares/album-share/album-share.co
     ReactiveFormsModule,
     NgClass,
     RouterLink,
-    AlbumShareComponent
+    AlbumShareComponent,
+    QrCodeModalComponent
   ],
   templateUrl: './album.component.html',
   styleUrl: './album.component.scss'
@@ -38,6 +39,7 @@ export class AlbumComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   showShareModal = false;
+  showQRModal = false;
 
   constructor(
     private fb: FormBuilder,
@@ -98,6 +100,12 @@ export class AlbumComponent implements OnInit, OnDestroy {
           createdAt: [
             { value: new Date(album.createdAt).toISOString().split('T')[0], disabled: true },
             [ Validators.required ]
+          ],
+          isPublic: [
+            { value: album.isPublic || false, disabled: true }
+          ],
+          publicUrl: [
+            { value: album.publicUrl || '', disabled: true }
           ]
         });
 
@@ -180,6 +188,53 @@ export class AlbumComponent implements OnInit, OnDestroy {
 
   toggleShareModal(): void {
     this.showShareModal = !this.showShareModal;
+  }
+
+  toggleQRModal(): void {
+    this.showQRModal = !this.showQRModal;
+  }
+
+  onAlbumUpdated(): void {
+    // Refresh album data when QR code status changes
+    this.fetchAlbum();
+  }
+
+  get isAlbumPublic(): boolean {
+    return this.albumForm?.get('isPublic')?.value || false;
+  }
+
+  get albumName(): string {
+    return this.albumForm?.get('albumName')?.value || '';
+  }
+
+  copyToClipboard(text: string): void {
+    if (!text) {
+      this.modalService.open('Error', 'No URL to copy', ModalType.ERROR);
+      return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      this.modalService.open('Success', 'URL copied to clipboard!', ModalType.SUCCESS);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      try {
+        document.execCommand('copy');
+        this.modalService.open('Success', 'URL copied to clipboard!', ModalType.SUCCESS);
+      } catch (err) {
+        this.modalService.open('Error', 'Failed to copy URL', ModalType.ERROR);
+      }
+
+      document.body.removeChild(textArea);
+    });
   }
 
   protected readonly Role = Role;

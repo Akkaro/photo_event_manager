@@ -9,4 +9,7 @@ export interface AlbumResponse extends AlbumBase {
   createdAt: string;
   isShared?: boolean;
   sharedByUser?: string;
+  isPublic?: boolean;
+  publicToken?: string;
+  publicUrl?: string;
 }

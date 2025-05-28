@@ -24,6 +24,7 @@
         <tr>
           <th>Album Name</th>
           <th>Owner</th>
+          <th>Status</th>
           <th>Created At</th>
           <th class="text-center">Actions</th>
         </tr>
@@ -32,11 +33,29 @@
           @for (album of albums; track album.albumId) {
   <tr>
     <td>
-      <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="text-primary">
-        {{ album.albumName }}
-      </a>
+      <div class="d-flex align-items-center">
+        <a [routerLink]="['/photos']" [queryParams]="{albumId: album.albumId}" class="text-primary me-2">
+          {{ album.albumName }}
+        </a>
+        @if (album.isPublic) {
+        <span class="badge bg-success badge-sm">
+          <i class="fas fa-globe" style="font-size: 0.75rem;"></i>
+        </span>
+        }
+      </div>
     </td>
     <td>{{ album.ownerName }}</td>
+    <td>
+      @if (album.isPublic) {
+      <span class="badge bg-success">
+        <i class="fas fa-globe me-1"></i>Public
+      </span>
+      } @else {
+      <span class="badge bg-secondary">
+        <i class="fas fa-lock me-1"></i>Private
+      </span>
+      }
+    </td>
     <td>{{ album.createdAt | date:'medium' }}</td>
     <td class="text-center">
       <div class="btn-group">
@@ -47,6 +66,11 @@
         <a [routerLink]="[album.albumId]" class="btn btn-sm btn-outline-secondary">
           <i class="fas fa-edit"></i> Edit
         </a>
+        }
+        @if (album.isPublic) {
+        <button class="btn btn-sm btn-outline-success" (click)="viewQRCode(album)" title="View QR Code">
+          <i class="fas fa-qrcode"></i>
+        </button>
         }
       </div>
     </td>
@@ -73,3 +97,13 @@
 (pageChange)="onPageChange($event)"
 ></app-pagination>
 }
+
+<!-- QR Code Quick View Modal -->
+<app-qr-code-modal
+  [albumId]="selectedAlbumId"
+  [albumName]="selectedAlbumName"
+  [isPublic]="true"
+  [show]="showQRModal"
+  (close)="showQRModal = false"
+  (albumUpdated)="handleRouteParams()">
+</app-qr-code-modal>

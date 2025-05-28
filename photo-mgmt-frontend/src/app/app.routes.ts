@@ -77,6 +77,37 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'public',
+    loadChildren: () => import('./feature/public-albums/public-albums.routes').then(m => m.routes)
+  },
+  {
+    path: ROUTES.ABOUT,
+    loadComponent: () => import('./core/components/about/about.component').then(m => m.AboutComponent),
+    canActivate: [ isAuthenticated ],
+    data: {
+      authenticated: true,
+      redirectUrl: ROUTES.AUTH
+    }
+  },
+  {
+    path: ROUTES.NOT_FOUND,
+    loadComponent: () => import('./core/components/not-found/not-found.component').then(m => m.NotFoundComponent),
+    canActivate: [ isAuthenticated ],
+    data: {
+      authenticated: true,
+      redirectUrl: ROUTES.AUTH
+    }
+  },
+  {
+    path: ROUTES.FORBIDDEN,
+    loadComponent: () => import('./core/components/forbidden/forbidden.component').then(m => m.ForbiddenComponent),
+    canActivate: [ isAuthenticated ],
+    data: {
+      authenticated: true,
+      redirectUrl: ROUTES.AUTH
+    }
+  },
+  {
     path: ROUTES.ALL,
     redirectTo: ROUTES.NOT_FOUND
   }

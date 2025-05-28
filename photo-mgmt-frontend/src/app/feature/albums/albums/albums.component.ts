@@ -15,7 +15,7 @@ import { ROUTES } from '../../../core/config/routes.enum';
 import { Subscription } from 'rxjs';
 import { Role } from '../../profile/models/user-role.enum';
 import { UserResponse } from '../../profile/models/user-response.model';
-
+import { QrCodeModalComponent } from '../components/qr-code-modal/qr-code-modal.component';
 
 @Component({
   selector: 'app-albums',
@@ -25,7 +25,8 @@ import { UserResponse } from '../../profile/models/user-response.model';
     ReactiveFormsModule,
     CommonModule,
     SearchBarComponent,
-    PaginationComponent
+    PaginationComponent,
+    QrCodeModalComponent
   ],
   templateUrl: './albums.component.html',
   styleUrl: './albums.component.scss'
@@ -39,6 +40,11 @@ export class AlbumsComponent implements OnInit, OnDestroy {
   totalPages = -1;
   loggedUser?: UserResponse;
   userSubscription?: Subscription;
+
+  // QR Code modal properties
+  showQRModal = false;
+  selectedAlbumId = '';
+  selectedAlbumName = '';
 
   constructor(
     private albumService: AlbumService,
@@ -61,7 +67,7 @@ export class AlbumsComponent implements OnInit, OnDestroy {
     this.userSubscription?.unsubscribe();
   }
 
-  private handleRouteParams(): void {
+  handleRouteParams(): void {
     this.route.queryParamMap.subscribe(params => {
       const searchBy = params.get('searchBy') ?? '';
       this.currentPage = +(params.get('page') ?? '0');
@@ -107,6 +113,12 @@ export class AlbumsComponent implements OnInit, OnDestroy {
       queryParams: { page },
       queryParamsHandling: 'merge'
     }).then();
+  }
+
+  viewQRCode(album: AlbumResponse): void {
+    this.selectedAlbumId = album.albumId;
+    this.selectedAlbumName = album.albumName;
+    this.showQRModal = true;
   }
 
   protected readonly Role = Role;

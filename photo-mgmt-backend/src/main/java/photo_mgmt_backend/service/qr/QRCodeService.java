@@ -17,6 +17,7 @@ import java.util.Base64;
 @Service
 public class QRCodeService {
 
+    // This should point to your FRONTEND URL where the public album viewer is located
     @Value("${app.base-url:http://localhost:4200}")
     private String baseUrl;
 
@@ -52,7 +53,7 @@ public class QRCodeService {
     }
 
     /**
-     * Generate the public album URL
+     * Generate the public album URL - This should point to your FRONTEND
      */
     public String generatePublicAlbumUrl(String publicToken) {
         return baseUrl + "/public/album/" + publicToken;

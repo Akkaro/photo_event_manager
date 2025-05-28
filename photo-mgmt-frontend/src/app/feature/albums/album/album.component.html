@@ -12,15 +12,29 @@
     <div class="col-md-8 mx-auto">
       <form [formGroup]="albumForm" class="card">
         <div class="card-header text-center">
-          <i class="fas fa-photo-film fa-3x mb-2"></i><br/>
-          <strong>{{ albumForm.get('albumName')?.value }}</strong>
-        </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="flex-grow-1">
+              <i class="fas fa-photo-film fa-3x mb-2"></i><br/>
+              <strong>{{ albumForm.get('albumName')?.value }}</strong>
+            </div>
+            <!-- Public/Private Badge -->
+            @if (isAlbumPublic) {
+  <span class="badge bg-success fs-6">
+                <i class="fas fa-globe me-1"></i>Public
+              </span>
+  } @else {
+  <span class="badge bg-secondary fs-6">
+                <i class="fas fa-lock me-1"></i>Private
+              </span>
+  }
+  </div>
+</div>
 
-        <div class="card-body">
-          <div class="mb-3">
-            <label class="form-label">Album Name:</label>
-            <input type="text" class="form-control" formControlName="albumName"/>
-            @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
+<div class="card-body">
+  <div class="mb-3">
+    <label class="form-label">Album Name:</label>
+    <input type="text" class="form-control" formControlName="albumName"/>
+    @if (albumForm.get('albumName')?.invalid && albumForm.get('albumName')?.touched) {
   <div class="text-danger small">
     @if (albumForm.get('albumName')?.errors?.['required']) {
     Album name is required.
@@ -44,6 +58,21 @@
     <label class="form-label">Created At:</label>
     <input type="date" class="form-control" formControlName="createdAt" readonly/>
   </div>
+
+  <!-- Public Status and URL -->
+  @if (isAlbumPublic && albumForm.get('publicUrl')?.value) {
+  <div class="mb-3">
+    <label class="form-label">Public Album URL:</label>
+    <div class="input-group">
+      <input type="text" class="form-control" [value]="albumForm.get('publicUrl')?.value" readonly/>
+      <button class="btn btn-outline-secondary" type="button"
+              (click)="copyToClipboard(albumForm.get('publicUrl')?.value)">
+        <i class="fas fa-copy"></i>
+      </button>
+    </div>
+    <small class="text-muted">This album can be accessed publicly via this URL</small>
+  </div>
+  }
 
   <div class="mb-3">
     <label class="form-label">QR Code:</label>
@@ -69,22 +98,43 @@
   <button (click)="toggleEdit()" [disabled]="albumForm.invalid && editMode" class="btn btn-outline-primary" type="button">
     <i [ngClass]="editMode ? 'fa-save' : 'fa-pen'" class="fas"></i> {{ editMode ? 'Save' : 'Edit' }}
   </button>
-  <!-- Add Share Button -->
+  <!-- Share Button -->
   <button (click)="toggleShareModal()" class="btn btn-outline-info" type="button">
     <i class="fas fa-share"></i> Share
+  </button>
+  <!-- QR Code Button -->
+  <button (click)="toggleQRModal()" class="btn btn-outline-success" type="button">
+    @if (isAlbumPublic) {
+    <i class="fas fa-qrcode"></i> View QR Code
+    } @else {
+    <i class="fas fa-globe"></i> Make Public
+    }
   </button>
   }
   </div>
 </div>
 </form>
 
-  @if (isOwner) {
+<!-- Album Share Modal -->
+@if (isOwner) {
   <app-album-share
     [albumId]="albumId"
     [isOwner]="isOwner"
     [show]="showShareModal"
     (close)="showShareModal = false">
   </app-album-share>
+  }
+
+  <!-- QR Code Modal -->
+  @if (isOwner) {
+  <app-qr-code-modal
+    [albumId]="albumId"
+    [albumName]="albumName"
+    [isPublic]="isAlbumPublic"
+    [show]="showQRModal"
+    (close)="showQRModal = false"
+    (albumUpdated)="onAlbumUpdated()">
+  </app-qr-code-modal>
   }
   </div>
 </div>
