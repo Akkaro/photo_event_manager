@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
@@ -29,7 +29,21 @@ export class PublicAlbumService {
    * Get public album data by token - this calls the BACKEND API
    */
   getPublicAlbum(token: string): Observable<PublicAlbumResponse> {
-    // This should call your backend API, not the frontend
-    return this.http.get<PublicAlbumResponse>(`${environment.apiUrl}/v1/public/album/${token}`);
+    // Important: This is a public endpoint, so we don't need authentication headers
+    const url = `${environment.apiUrl}/v1/public/album/${token}`;
+
+    console.log('PublicAlbumService: Making request to:', url);
+
+    // Create headers without credentials for public access
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    return this.http.get<PublicAlbumResponse>(url, {
+      headers,
+      // Don't send credentials for public endpoints
+      withCredentials: false
+    });
   }
 }
