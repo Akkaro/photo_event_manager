@@ -390,14 +390,11 @@ export class PhotoEditComponent implements OnInit {
   // Utility Methods
   private handleEditSuccess(response: PhotoEditResponse): void {
     this.modalService.open('Success', 'Photo edited successfully!', ModalType.SUCCESS);
-
-    // Add to history
     this.editHistory.unshift(response);
 
-    // Refresh the photo to get the updated version
-    this.loadPhoto();
+    // Navigate immediately
+    this.router.navigate([`/${ROUTES.PHOTOS}`, this.photoId]);
   }
-
   private handleEditError(error: any): void {
     this.modalService.open('Error', error.error?.message || 'Failed to edit photo', ModalType.ERROR);
     console.error('Photo edit error:', error);

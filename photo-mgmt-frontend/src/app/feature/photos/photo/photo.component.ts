@@ -38,6 +38,7 @@ export class PhotoComponent implements OnInit, OnDestroy {
   loggedUser?: UserResponse;
   error: string | null = null;
   private albums: AlbumResponse[] = [];
+  private deleteConfirmationPending = false;
 
   // Version history
   showVersionHistoryModal = false;
@@ -197,22 +198,29 @@ export class PhotoComponent implements OnInit, OnDestroy {
   }
 
   deletePhoto(): void {
+    this.deleteConfirmationPending = true;
     this.modalService.open('Delete', 'Are you sure you want to delete this photo?', ModalType.CONFIRM);
   }
+
 
   private watchPhotoDeletion(): void {
     this.modalService.confirm$
       .pipe(takeUntil(this.subject$))
-      .subscribe(() => {
-        this.photoService.delete(this.photoId).subscribe({
-          next: () => {
-            this.modalService.open('Deleted', 'Photo has been deleted.', ModalType.SUCCESS);
-            this.router.navigateByUrl(ROUTES.PHOTOS).then();
-          },
-          error: (error: HttpErrorResponse) => {
-            this.modalService.open('Error', error.error.message, ModalType.ERROR);
-          }
-        });
+      .subscribe((action) => {
+        // Only process if we're expecting a delete confirmation
+        if (this.deleteConfirmationPending) {
+          this.deleteConfirmationPending = false;
+
+          this.photoService.delete(this.photoId).subscribe({
+            next: () => {
+              this.modalService.open('Deleted', 'Photo has been deleted.', ModalType.SUCCESS);
+              this.router.navigateByUrl(ROUTES.PHOTOS).then();
+            },
+            error: (error: HttpErrorResponse) => {
+              this.modalService.open('Error', error.error.message, ModalType.ERROR);
+            }
+          });
+        }
       });
   }
 

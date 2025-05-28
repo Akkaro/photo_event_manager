@@ -176,7 +176,7 @@ public class PhotoServiceBean implements PhotoService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
         if (!isAdminOrModerator) {
-            // Find the album to check ownership
+            // Find the album to check ownership and sharing
             AlbumEntity album = albumRepository.findById(photoEntity.getAlbumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoEntity.getAlbumId()));
 
@@ -184,12 +184,19 @@ public class PhotoServiceBean implements PhotoService {
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the album containing this photo
-            if (!album.getOwnerId().equals(currentUser.getUserId())) {
-                log.warn("[PHOTO] User {} attempted to access photo {} but is not the owner of album {}",
+            // Check if user owns the album OR if the album is shared with the user
+            boolean isOwner = album.getOwnerId().equals(currentUser.getUserId());
+            boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
+                    photoEntity.getAlbumId(), currentUser.getUserId());
+
+            if (!isOwner && !isSharedWithUser) {
+                log.warn("[PHOTO] User {} attempted to access photo {} but is not the owner of album {} and album is not shared with them",
                         email, id, photoEntity.getAlbumId());
                 throw new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id);
             }
+
+            log.info("[PHOTO] User {} has access to photo {} (owner: {}, shared: {})",
+                    email, id, isOwner, isSharedWithUser);
         }
 
         return photoMapper.convertEntityToResponseDto(photoEntity);
@@ -264,23 +271,45 @@ public class PhotoServiceBean implements PhotoService {
 
         // For non-admin users, check permissions
         if (!isAdmin) {
-            // Check current album ownership
+            // Check current album permissions
             AlbumEntity currentAlbum = albumRepository.findById(existingPhoto.getAlbumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, existingPhoto.getAlbumId()));
 
-            if (!currentAlbum.getOwnerId().equals(ownerId)) {
+            // Find the current user by email
+            String email = authentication.getName();
+            UserEntity currentUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
+
+            // Check if user owns the current album OR if the album is shared with the user
+            boolean isCurrentAlbumOwner = currentAlbum.getOwnerId().equals(currentUser.getUserId());
+            boolean isCurrentAlbumSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
+                    existingPhoto.getAlbumId(), currentUser.getUserId());
+
+            if (!isCurrentAlbumOwner && !isCurrentAlbumSharedWithUser) {
+                log.warn("[PHOTO] User {} attempted to update photo {} but is not the owner of album {} and album is not shared with them",
+                        email, id, existingPhoto.getAlbumId());
                 throw new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id);
             }
 
-            // If album is changing, check new album ownership
+            // If album is changing, check new album permissions
             if (albumChanging) {
                 AlbumEntity newAlbum = albumRepository.findById(photoRequestDTO.albumId())
                         .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
-                if (!newAlbum.getOwnerId().equals(ownerId)) {
+                // Check if user owns the new album OR if the new album is shared with the user
+                boolean isNewAlbumOwner = newAlbum.getOwnerId().equals(currentUser.getUserId());
+                boolean isNewAlbumSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
+                        photoRequestDTO.albumId(), currentUser.getUserId());
+
+                if (!isNewAlbumOwner && !isNewAlbumSharedWithUser) {
+                    log.warn("[PHOTO] User {} attempted to move photo {} to album {} but is not the owner and album is not shared with them",
+                            email, id, photoRequestDTO.albumId());
                     throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId());
                 }
             }
+
+            log.info("[PHOTO] User {} has permission to update photo {} (current album owner: {}, current album shared: {}, album changing: {})",
+                    email, id, isCurrentAlbumOwner, isCurrentAlbumSharedWithUser, albumChanging);
         }
 
         photoMapper.updatePhotoEntity(existingPhoto, photoRequestDTO);
@@ -288,7 +317,6 @@ public class PhotoServiceBean implements PhotoService {
 
         return photoMapper.convertEntityToResponseDto(photoEntitySaved);
     }
-
     @Override
     @Transactional
     public void delete(UUID id) {
