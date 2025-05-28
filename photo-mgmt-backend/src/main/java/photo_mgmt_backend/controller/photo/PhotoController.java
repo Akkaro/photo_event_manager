@@ -164,7 +164,7 @@ public interface PhotoController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("isAuthenticated()")
     PhotoEditResponseDTO editEdgeDetection(@PathVariable(name = "id") UUID photoId,
-                                           @RequestParam String type); // canny or sobel
+                                           @RequestParam String type);
 
     @PostMapping("/{id}/edit/morphological")
     @Operation(summary = "Apply morphological operations",
@@ -172,7 +172,7 @@ public interface PhotoController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("isAuthenticated()")
     PhotoEditResponseDTO editMorphological(@PathVariable(name = "id") UUID photoId,
-                                           @RequestParam String operation, // open or close
+                                           @RequestParam String operation,
                                            @RequestParam Integer kernelSize,
                                            @RequestParam(required = false, defaultValue = "1") Integer iterations);
 
@@ -182,7 +182,7 @@ public interface PhotoController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("isAuthenticated()")
     PhotoEditResponseDTO editDenoise(@PathVariable(name = "id") UUID photoId,
-                                     @RequestParam String type); // bilateral or median
+                                     @RequestParam String type);
 
     @PostMapping("/{id}/edit/threshold")
     @Operation(summary = "Apply thresholding",

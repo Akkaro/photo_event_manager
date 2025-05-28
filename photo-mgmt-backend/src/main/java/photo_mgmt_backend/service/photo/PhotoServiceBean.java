@@ -47,27 +47,21 @@ public class PhotoServiceBean implements PhotoService {
 
     @Override
     public CollectionResponseDTO<PhotoResponseDTO> findAll(PhotoFilterDTO filter) {
-        // Get the current authentication
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // Check if user is ADMIN or MODERATOR - they can see all photos
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
         log.info("[PHOTO] Finding photos, user: {}, isAdminOrModerator: {}, filter: {}", email, isAdminOrModerator, filter);
 
-        // For regular users who filter by albumId
         if (!isAdminOrModerator && filter.albumId() != null) {
-            // Get the album to check ownership
             AlbumEntity album = albumRepository.findById(filter.albumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, filter.albumId()));
 
-            // Find the current user by email
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the album OR if the album is shared with the user
             boolean isOwner = album.getOwnerId().equals(currentUser.getUserId());
             boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
                     filter.albumId(), currentUser.getUserId());
@@ -75,25 +69,19 @@ public class PhotoServiceBean implements PhotoService {
             if (!isOwner && !isSharedWithUser) {
                 log.warn("[PHOTO] User {} is not the owner of album {} and album is not shared with them",
                         email, filter.albumId());
-                // Return empty results if user doesn't own the album and it's not shared with them
                 return createEmptyResponse(filter);
             }
 
-            // User owns the album or it's shared with them, proceed with filter
             log.info("[PHOTO] User {} has access to album {} (owner: {}, shared: {})",
                     email, filter.albumId(), isOwner, isSharedWithUser);
         }
 
-        // For regular users without albumId filter, we need to filter by their albums only
         if (!isAdminOrModerator && filter.albumId() == null) {
-            // Find the current user by email
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Get all albums owned by the user
             List<AlbumEntity> userOwnedAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
 
-            // Get all albums shared with the user
             List<AlbumShareEntity> sharedAlbums = albumShareRepository.findBySharedWithUserId(currentUser.getUserId());
             List<UUID> sharedAlbumIds = sharedAlbums.stream()
                     .map(AlbumShareEntity::getAlbumId)
@@ -104,17 +92,14 @@ public class PhotoServiceBean implements PhotoService {
                 return createEmptyResponse(filter);
             }
 
-            // Get all albums the user has access to (owned + shared)
             Set<UUID> accessibleAlbumIds = new HashSet<>();
             accessibleAlbumIds.addAll(userOwnedAlbums.stream().map(AlbumEntity::getAlbumId).collect(Collectors.toSet()));
             accessibleAlbumIds.addAll(sharedAlbumIds);
 
-            // Get all photos from accessible albums
             List<PhotoEntity> userPhotos = photoRepository.findAll().stream()
                     .filter(photo -> accessibleAlbumIds.contains(photo.getAlbumId()))
                     .collect(Collectors.toList());
 
-            // Manual pagination
             int startIndex = filter.pageNumber() * filter.pageSize();
             int endIndex = Math.min(startIndex + filter.pageSize(), userPhotos.size());
 
@@ -126,10 +111,8 @@ public class PhotoServiceBean implements PhotoService {
             log.info("[PHOTO] Found {} photos for user {} (from {} accessible albums)",
                     userPhotos.size(), email, accessibleAlbumIds.size());
 
-            // Convert to response DTOs
             List<PhotoResponseDTO> photoDtos = photoMapper.convertEntitiesToResponseDtos(pagedPhotos);
 
-            // Build and return the response
             return CollectionResponseDTO.<PhotoResponseDTO>builder()
                     .pageNumber(filter.pageNumber())
                     .pageSize(filter.pageSize())
@@ -139,7 +122,6 @@ public class PhotoServiceBean implements PhotoService {
                     .build();
         }
 
-        // For ADMIN and MODERATOR, use normal filtering
         Specification<PhotoEntity> spec = photoSpec.createSpecification(filter);
         PageRequest page = PageRequest.of(filter.pageNumber(), filter.pageSize());
         Page<PhotoEntity> photos = photoRepository.findAll(spec, page);
@@ -168,7 +150,6 @@ public class PhotoServiceBean implements PhotoService {
         PhotoEntity photoEntity = photoRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id));
 
-        // Check if user has permission to view this photo
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -176,15 +157,12 @@ public class PhotoServiceBean implements PhotoService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
         if (!isAdminOrModerator) {
-            // Find the album to check ownership and sharing
             AlbumEntity album = albumRepository.findById(photoEntity.getAlbumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoEntity.getAlbumId()));
 
-            // Find the current user by email
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the album OR if the album is shared with the user
             boolean isOwner = album.getOwnerId().equals(currentUser.getUserId());
             boolean isSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
                     photoEntity.getAlbumId(), currentUser.getUserId());
@@ -205,11 +183,9 @@ public class PhotoServiceBean implements PhotoService {
     @Override
     @Transactional
     public PhotoResponseDTO save(PhotoRequestDTO photoRequestDTO, UUID ownerId, MultipartFile file) {
-        // Verify album exists
         AlbumEntity albumEntity = albumRepository.findById(photoRequestDTO.albumId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
-        // Verify user has permission (existing permission logic)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
@@ -235,11 +211,9 @@ public class PhotoServiceBean implements PhotoService {
         photoToBeAdded.setUploadedAt(ZonedDateTime.now());
         photoToBeAdded.setIsEdited(false);
 
-        // Upload image to Cloudinary
         String imagePath = cloudinaryService.uploadImage(file, ownerId);
         photoToBeAdded.setPath(imagePath);
 
-        // CRITICAL: Set original path same as current path for new uploads
         photoToBeAdded.setOriginalPath(imagePath);
 
         PhotoEntity photoAdded = photoRepository.save(photoToBeAdded);
@@ -255,32 +229,25 @@ public class PhotoServiceBean implements PhotoService {
         PhotoEntity existingPhoto = photoRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id));
 
-        // Check if album is changing
         boolean albumChanging = !existingPhoto.getAlbumId().equals(photoRequestDTO.albumId());
 
-        // Verify album exists if being changed
         if (albumChanging) {
             albumRepository.findById(photoRequestDTO.albumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
         }
 
-        // Verify user has permission
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        // For non-admin users, check permissions
         if (!isAdmin) {
-            // Check current album permissions
             AlbumEntity currentAlbum = albumRepository.findById(existingPhoto.getAlbumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, existingPhoto.getAlbumId()));
 
-            // Find the current user by email
             String email = authentication.getName();
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the current album OR if the album is shared with the user
             boolean isCurrentAlbumOwner = currentAlbum.getOwnerId().equals(currentUser.getUserId());
             boolean isCurrentAlbumSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
                     existingPhoto.getAlbumId(), currentUser.getUserId());
@@ -291,12 +258,10 @@ public class PhotoServiceBean implements PhotoService {
                 throw new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id);
             }
 
-            // If album is changing, check new album permissions
             if (albumChanging) {
                 AlbumEntity newAlbum = albumRepository.findById(photoRequestDTO.albumId())
                         .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoRequestDTO.albumId()));
 
-                // Check if user owns the new album OR if the new album is shared with the user
                 boolean isNewAlbumOwner = newAlbum.getOwnerId().equals(currentUser.getUserId());
                 boolean isNewAlbumSharedWithUser = albumShareRepository.existsByAlbumIdAndSharedWithUserId(
                         photoRequestDTO.albumId(), currentUser.getUserId());
@@ -323,29 +288,23 @@ public class PhotoServiceBean implements PhotoService {
         PhotoEntity photoEntity = photoRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id));
 
-        // Verify user has permission
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        // For non-admin users, check permissions
         if (!isAdmin) {
-            // Get the album to check ownership
             AlbumEntity album = albumRepository.findById(photoEntity.getAlbumId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, photoEntity.getAlbumId()));
 
-            // Find the current user by email
             String email = authentication.getName();
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Check if user owns the album containing this photo
             if (!album.getOwnerId().equals(currentUser.getUserId())) {
                 throw new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, id);
             }
         }
 
-        // Delete the image from Cloudinary
         String publicId = cloudinaryService.extractPublicIdFromUrl(photoEntity.getPath());
         if (publicId != null) {
             cloudinaryService.deleteImage(publicId);

@@ -276,7 +276,6 @@ public class PhotoControllerBean implements PhotoController {
         log.info("[PHOTO] Reverting photo {} to version {}", photoId, request.targetVersion());
         UUID ownerId = getCurrentUserId();
 
-        // Ensure the photoId in the path matches the one in the request
         RevertToVersionRequestDTO updatedRequest = new RevertToVersionRequestDTO(
                 photoId,
                 request.targetVersion(),

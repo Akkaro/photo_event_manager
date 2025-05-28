@@ -102,7 +102,6 @@ public interface AlbumController {
     @PreAuthorize("isAuthenticated()")
     void delete(@PathVariable(name = "id") UUID id);
 
-    // Add these methods to AlbumController interface
     @PostMapping("/{albumId}/share")
     @Operation(summary = "Share album with user")
     @ResponseStatus(HttpStatus.CREATED)

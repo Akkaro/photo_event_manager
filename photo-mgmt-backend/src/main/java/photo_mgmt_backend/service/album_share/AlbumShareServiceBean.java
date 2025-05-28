@@ -1,4 +1,3 @@
-// photo-mgmt-backend/src/main/java/photo_mgmt_backend/service/album_share/AlbumShareServiceBean.java
 package photo_mgmt_backend.service.album_share;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class AlbumShareServiceBean implements AlbumShareService {
     @Override
     @Transactional
     public void shareAlbum(UUID albumId, String userEmail, UUID sharedByUserId) {
-        // Verify album exists and current user owns it
         AlbumEntity album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, albumId));
 
@@ -42,21 +40,17 @@ public class AlbumShareServiceBean implements AlbumShareService {
             throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, albumId);
         }
 
-        // Find user to share with
         UserEntity userToShareWith = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, userEmail));
 
-        // Don't allow sharing with self
         if (userToShareWith.getUserId().equals(sharedByUserId)) {
             throw new DuplicateDataException(ExceptionCode.CONSTRAINT_VIOLATION, "Cannot share album with yourself");
         }
 
-        // Check if already shared
         if (albumShareRepository.existsByAlbumIdAndSharedWithUserId(albumId, userToShareWith.getUserId())) {
             throw new DuplicateDataException(ExceptionCode.CONSTRAINT_VIOLATION, "Album already shared with this user");
         }
 
-        // Create share record
         AlbumShareEntity share = new AlbumShareEntity();
         share.setAlbumId(albumId);
         share.setSharedWithUserId(userToShareWith.getUserId());
@@ -70,7 +64,6 @@ public class AlbumShareServiceBean implements AlbumShareService {
     @Override
     @Transactional
     public void unshareAlbum(UUID albumId, String userEmail, UUID currentUserId) {
-        // Verify album exists and current user owns it
         AlbumEntity album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, albumId));
 
@@ -78,7 +71,6 @@ public class AlbumShareServiceBean implements AlbumShareService {
             throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, albumId);
         }
 
-        // Find user to unshare with
         UserEntity userToUnshareWith = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, userEmail));
 
@@ -88,7 +80,6 @@ public class AlbumShareServiceBean implements AlbumShareService {
 
     @Override
     public List<AlbumShareResponseDTO> getAlbumShares(UUID albumId, UUID currentUserId) {
-        // Verify album exists and current user owns it
         AlbumEntity album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, albumId));
 

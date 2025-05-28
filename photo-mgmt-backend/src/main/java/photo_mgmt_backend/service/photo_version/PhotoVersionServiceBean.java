@@ -35,32 +35,23 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
 
     @Override
     public PhotoVersionHistoryDTO getVersionHistory(UUID photoId, UUID requestingUserId) {
-        // Verify photo exists and user has access
         PhotoEntity photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, photoId));
 
-        // Add permission check here if needed
-        // For now, we'll allow any authenticated user to view version history
-        // You might want to add album ownership/sharing checks
-
-        // Get all versions ordered by version number (newest first)
         List<PhotoEditEntity> editEntities = photoEditRepository.findByPhotoIdOrderByVersionNumberDesc(photoId);
 
-        // Convert to DTOs
         List<PhotoVersionDTO> versions = new ArrayList<>();
 
-        // Add original version (version 0)
         String ownerName = "Unknown";
         if (photo.getOwner() != null) {
             ownerName = photo.getOwner().getUserName();
         }
 
-        // Determine if original is current (no edits or all edits are reverts)
         boolean originalIsCurrent = editEntities.isEmpty() ||
                 photo.getPath().equals(photo.getOriginalPath());
 
         versions.add(new PhotoVersionDTO(
-                null, // No edit ID for original
+                null,
                 0,
                 photo.getOriginalPath(),
                 "Original (unedited)",
@@ -69,10 +60,8 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
                 originalIsCurrent
         ));
 
-        // Add edit versions
         Integer currentVersion = getCurrentVersionNumber(photo, editEntities);
         for (PhotoEditEntity editEntity : editEntities) {
-            // Skip revert operations that don't represent actual edits
             if (isRevertOperation(editEntity)) {
                 continue;
             }
@@ -109,8 +98,6 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
         PhotoEntity photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, photoId));
 
-        // Add permission check here if needed
-
         return photo.getOriginalPath();
     }
 
@@ -120,23 +107,17 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
         PhotoEntity photo = photoRepository.findById(request.photoId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, request.photoId()));
 
-        // Add permission check here - verify user owns the photo or has edit permissions
-        // For now, we'll allow any authenticated user
-
         String targetImageUrl;
         String description;
         boolean isRevertingToOriginal = request.targetVersion() == 0;
 
         if (isRevertingToOriginal) {
-            // Reverting to original
             targetImageUrl = photo.getOriginalPath();
             description = "Reverted to original";
 
-            // Update photo entity
             photo.setPath(targetImageUrl);
             photo.setIsEdited(false);
         } else {
-            // Reverting to specific edit version
             PhotoEditEntity targetVersion = photoEditRepository.findByPhotoIdAndVersionNumber(
                             request.photoId(), request.targetVersion())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_EDIT_NOT_FOUND,
@@ -146,31 +127,27 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
                     targetVersion.getResultVersionUrl() : photo.getPath();
             description = "Reverted to version " + request.targetVersion();
 
-            // Update photo entity
             photo.setPath(targetImageUrl);
             photo.setIsEdited(true);
         }
 
-        // Save the updated photo
         photoRepository.save(photo);
 
-        // Create a revert record for audit purposes (optional)
         PhotoEditEntity revertRecord = createRevertRecord(photo, request, requestingUserId, targetImageUrl, description);
         PhotoEditEntity savedRevert = photoEditRepository.save(revertRecord);
 
         log.info("[PHOTO_VERSION] Reverted photo {} to version {}", request.photoId(), request.targetVersion());
 
-        // Get user name for response
         String userName = getUserName(requestingUserId);
 
         return new PhotoVersionDTO(
                 savedRevert.getEditId(),
-                request.targetVersion(), // Return the target version, not the revert record version
+                request.targetVersion(),
                 targetImageUrl,
                 description,
                 savedRevert.getEditedAt(),
                 userName,
-                true // This is now the current version
+                true
         );
     }
 
@@ -183,7 +160,6 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
 
     @Override
     public String generateEditDescription(PhotoEditEntity editEntity) {
-        // Skip description for revert operations
         if (isRevertOperation(editEntity)) {
             return "Revert operation";
         }
@@ -236,15 +212,13 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
 
     private Integer getCurrentVersionNumber(PhotoEntity photo, List<PhotoEditEntity> editEntities) {
         if (editEntities.isEmpty()) {
-            return 0; // Original version
+            return 0;
         }
 
-        // Check if current photo path matches original (reverted to original)
         if (photo.getPath().equals(photo.getOriginalPath())) {
             return 0;
         }
 
-        // Find which version the current photo path matches
         for (PhotoEditEntity edit : editEntities) {
             if (edit.getResultVersionUrl() != null &&
                     edit.getResultVersionUrl().equals(photo.getPath())) {
@@ -252,12 +226,10 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
             }
         }
 
-        // If no match found, return the latest version number
         return editEntities.get(0).getVersionNumber();
     }
 
     private boolean isRevertOperation(PhotoEditEntity editEntity) {
-        // A revert operation typically has no actual edit parameters set
         return editEntity.getBrightness() == null &&
                 editEntity.getContrast() == null &&
                 editEntity.getGamma() == null &&
@@ -277,12 +249,10 @@ public class PhotoVersionServiceBean implements PhotoVersionService {
         PhotoEditEntity revertRecord = new PhotoEditEntity();
         revertRecord.setPhotoId(request.photoId());
         revertRecord.setOwnerId(requestingUserId);
-        revertRecord.setVersionNumber(-1); // Special version number for revert records
-        revertRecord.setPreviousVersionUrl(photo.getPath()); // Current path before revert
+        revertRecord.setVersionNumber(-1);
+        revertRecord.setPreviousVersionUrl(photo.getPath());
         revertRecord.setResultVersionUrl(targetImageUrl);
         revertRecord.setEditedAt(ZonedDateTime.now());
-
-        // All edit parameters remain null to indicate this is a revert operation
 
         return revertRecord;
     }

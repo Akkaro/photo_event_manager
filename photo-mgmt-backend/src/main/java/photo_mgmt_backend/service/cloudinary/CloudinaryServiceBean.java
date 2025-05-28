@@ -21,7 +21,6 @@ public class CloudinaryServiceBean implements CloudinaryService {
     @Override
     public String uploadImage(MultipartFile file, UUID ownerId) {
         try {
-            // Create a folder structure based on owner ID
             String folder = "photos/" + ownerId;
 
             Map<?, ?> uploadResult = cloudinary.uploader().upload(
@@ -32,7 +31,6 @@ public class CloudinaryServiceBean implements CloudinaryService {
                     )
             );
 
-            // Return the secure URL of the uploaded image
             return (String) uploadResult.get("secure_url");
         } catch (IOException e) {
             log.error("Failed to upload image to Cloudinary", e);
@@ -52,8 +50,6 @@ public class CloudinaryServiceBean implements CloudinaryService {
 
     @Override
     public String extractPublicIdFromUrl(String url) {
-        // Example URL: https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/photos/user-id/image.jpg
-        // We need to extract: photos/user-id/image
         if (url == null || url.isEmpty()) {
             return null;
         }
@@ -64,13 +60,11 @@ public class CloudinaryServiceBean implements CloudinaryService {
         }
 
         String part = parts[1];
-        // Remove version number (v1234567890/) if present
         if (part.contains("/")) {
             String[] versionSplit = part.split("/", 2);
             part = versionSplit.length > 1 ? versionSplit[1] : part;
         }
 
-        // Remove file extension
         int extensionIndex = part.lastIndexOf('.');
         if (extensionIndex > 0) {
             part = part.substring(0, extensionIndex);

@@ -51,23 +51,19 @@ public class AlbumServiceBean implements AlbumService {
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
-            // Get albums owned by user
             List<AlbumEntity> ownedAlbums = albumRepository.findByOwnerId(currentUser.getUserId());
 
-            // Get albums shared with user
             List<AlbumShareEntity> sharedAlbums = albumShareRepository.findBySharedWithUserId(currentUser.getUserId());
             List<AlbumEntity> sharedAlbumEntities = sharedAlbums.stream()
                     .map(AlbumShareEntity::getAlbum)
                     .toList();
 
-            // Combine both lists
             Set<AlbumEntity> allUserAlbums = new HashSet<>();
             allUserAlbums.addAll(ownedAlbums);
             allUserAlbums.addAll(sharedAlbumEntities);
 
             List<AlbumEntity> userAlbumsList = new ArrayList<>(allUserAlbums);
 
-            // Apply pagination
             int startIndex = filter.pageNumber() * filter.pageSize();
             int endIndex = Math.min(startIndex + filter.pageSize(), userAlbumsList.size());
             List<AlbumEntity> pagedAlbums = startIndex < userAlbumsList.size() ?
@@ -84,7 +80,6 @@ public class AlbumServiceBean implements AlbumService {
                     .build();
         }
 
-        // For ADMIN and MODERATOR, use normal filtering
         Specification<AlbumEntity> spec = albumSpec.createSpecification(filter);
         PageRequest page = PageRequest.of(filter.pageNumber(), filter.pageSize());
         Page<AlbumEntity> albums = albumRepository.findAll(spec, page);
@@ -103,20 +98,17 @@ public class AlbumServiceBean implements AlbumService {
         AlbumEntity albumEntity = albumRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id));
 
-        // Check if user has permission to view this album
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdminOrModerator = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_MODERATOR"));
 
         if (!isAdminOrModerator) {
-            // For regular users, check if they own the album
             String email = authentication.getName();
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
             if (!albumEntity.getOwnerId().equals(currentUser.getUserId())) {
-                // If user doesn't own the album and isn't admin/moderator, throw not found
-                throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id);
+                 throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id);
             }
         }
 
@@ -134,7 +126,6 @@ public class AlbumServiceBean implements AlbumService {
         albumToBeAdded.setOwnerId(ownerId);
         albumToBeAdded.setCreatedAt(ZonedDateTime.now());
 
-        // Generate QR code
         String qrCode = generateQrCode(albumToBeAdded);
         albumToBeAdded.setQrCode(qrCode);
 
@@ -150,7 +141,6 @@ public class AlbumServiceBean implements AlbumService {
         AlbumEntity existingAlbum = albumRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id));
 
-        // Verify ownership
         if (!existingAlbum.getOwnerId().equals(ownerId)) {
             throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id);
         }
@@ -171,19 +161,16 @@ public class AlbumServiceBean implements AlbumService {
         AlbumEntity albumEntity = albumRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id));
 
-        // Check permissions before deletion
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (!isAdmin) {
-            // For non-admin users, check if they own the album
             String email = authentication.getName();
             UserEntity currentUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.USER_NOT_FOUND, email));
 
             if (!albumEntity.getOwnerId().equals(currentUser.getUserId())) {
-                // If user doesn't own the album and isn't admin, throw not found
                 throw new DataNotFoundException(ExceptionCode.ALBUM_NOT_FOUND, id);
             }
         }
@@ -191,10 +178,7 @@ public class AlbumServiceBean implements AlbumService {
         albumRepository.deleteById(albumEntity.getAlbumId());
     }
 
-    // Helper method for QR code generation
     private String generateQrCode(AlbumEntity album) {
-        // In a real implementation, this would generate an actual QR code
-        // For now, just returning a placeholder string
         return "qr_code_" + album.getAlbumName();
     }
 }

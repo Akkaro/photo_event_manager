@@ -78,51 +78,39 @@ public class PhotoEditServiceBean implements PhotoEditService {
     @Override
     @Transactional
     public PhotoEditResponseDTO save(PhotoEditRequestDTO photoEditRequestDTO, UUID ownerId) {
-        // Verify photo exists
         PhotoEntity photoEntity = photoRepository.findById(photoEditRequestDTO.photoId())
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, photoEditRequestDTO.photoId()));
 
         try {
-            // Store current image URL before editing (for version history)
             String currentImageUrl = photoEntity.getPath();
 
-            // CRITICAL FIX: Only set original path if it's not already set
             if (photoEntity.getOriginalPath() == null || photoEntity.getOriginalPath().isEmpty()) {
                 photoEntity.setOriginalPath(currentImageUrl);
                 log.info("[PHOTO_EDIT] Setting original path for photo {} to {}", photoEditRequestDTO.photoId(), currentImageUrl);
             }
 
-            // Download current image from Cloudinary
             String currentImagePath = downloadImageFromCloudinary(currentImageUrl);
 
-            // Apply edits using C++ tools
             String editedImagePath = applyPhotoEdits(currentImagePath, photoEditRequestDTO);
 
-            // Upload edited image back to Cloudinary
             String editedImageUrl = uploadEditedImageToCloudinary(editedImagePath, ownerId);
 
-            // Get next version number
             Integer nextVersion = photoVersionService.getNextVersionNumber(photoEditRequestDTO.photoId());
 
-            // Save edit record with versioning information
             PhotoEditEntity photoEditToBeAdded = photoEditMapper.convertRequestDtoToEntity(photoEditRequestDTO);
             photoEditToBeAdded.setOwnerId(ownerId);
             photoEditToBeAdded.setEditedAt(ZonedDateTime.now());
 
-            // Set versioning fields
             photoEditToBeAdded.setVersionNumber(nextVersion);
             photoEditToBeAdded.setPreviousVersionUrl(currentImageUrl);
             photoEditToBeAdded.setResultVersionUrl(editedImageUrl);
 
             PhotoEditEntity photoEditAdded = photoEditRepository.save(photoEditToBeAdded);
 
-            // CRITICAL FIX: Update the photo's current path and edited status WITHOUT changing originalPath
             photoEntity.setIsEdited(true);
             photoEntity.setPath(editedImageUrl);
-            // DO NOT modify originalPath here - it should remain unchanged
             photoRepository.save(photoEntity);
 
-            // Clean up temporary files
             cleanupTempFiles(currentImagePath, editedImagePath);
 
             log.info("[PHOTO_EDIT] Created version {} for photo {}, original path preserved: {}",
@@ -137,17 +125,14 @@ public class PhotoEditServiceBean implements PhotoEditService {
     }
 
     private String downloadImageFromCloudinary(String imageUrl) throws IOException {
-        // Create temp directory if it doesn't exist
         Path tempDir = Paths.get(tempPath);
         if (!Files.exists(tempDir)) {
             Files.createDirectories(tempDir);
         }
 
-        // Generate unique filename
         String filename = UUID.randomUUID().toString() + "_original.jpg";
         Path imagePath = tempDir.resolve(filename);
 
-        // Download image using curl or similar
         ProcessBuilder pb = new ProcessBuilder("curl", "-o", imagePath.toString(), imageUrl);
         Process process = pb.start();
 
@@ -172,7 +157,6 @@ public class PhotoEditServiceBean implements PhotoEditService {
         command.add(originalImagePath);
         command.add(editedImagePath);
 
-        // Determine the operation type and build command
         if (Boolean.TRUE.equals(editRequest.combinedProcessing())) {
             buildCombinedCommand(command, editRequest);
         } else {
@@ -187,30 +171,22 @@ public class PhotoEditServiceBean implements PhotoEditService {
     private void buildCombinedCommand(List<String> command, PhotoEditRequestDTO editRequest) {
         command.add("combined");
 
-        // Add brightness (default 0 if not specified)
         command.add(String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 0));
 
-        // Add contrast (default 1.0 if not specified)
         command.add(String.valueOf(editRequest.contrast() != null ? editRequest.contrast().doubleValue() : 1.0));
 
-        // Add gamma (default 1.0 if not specified)
         command.add(String.valueOf(editRequest.gamma() != null ? editRequest.gamma().doubleValue() : 1.0));
 
-        // Add histogram equalization flag (1 for true, 0 for false)
         command.add(Boolean.TRUE.equals(editRequest.histogramEqualization()) ? "1" : "0");
 
-        // Add noise reduction type (default "none")
         command.add(editRequest.noiseReduction() != null ? editRequest.noiseReduction() : "none");
 
-        // Add edge detection type (default "none")
         command.add(editRequest.edgeDetectionType() != null ? editRequest.edgeDetectionType() : "none");
 
-        // Add threshold value (default -1 for no thresholding)
         command.add(String.valueOf(editRequest.thresholdValue() != null ? editRequest.thresholdValue() : -1));
     }
 
     private void buildSingleOperationCommand(List<String> command, PhotoEditRequestDTO editRequest) {
-        // Determine which single operation to apply
         if (editRequest.brightness() != null || editRequest.contrast() != null) {
             command.add("brightness_contrast");
             command.add(String.valueOf(editRequest.brightness() != null ? editRequest.brightness().doubleValue() : 0));
@@ -244,7 +220,6 @@ public class PhotoEditServiceBean implements PhotoEditService {
         } else if (Boolean.TRUE.equals(editRequest.hsvConversion())) {
             command.add("hsv_convert");
         } else {
-            // Default to brightness/contrast with default values
             command.add("brightness_contrast");
             command.add("0");
             command.add("1.0");
@@ -257,14 +232,12 @@ public class PhotoEditServiceBean implements PhotoEditService {
         Process process = pb.start();
 
         try {
-            // Read process output for debugging
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
             while ((line = reader.readLine()) != null) {
                 log.debug("Process output: {}", line);
             }
 
-            // Read error output
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             while ((line = errorReader.readLine()) != null) {
                 log.error("Process error: {}", line);
@@ -307,12 +280,10 @@ public class PhotoEditServiceBean implements PhotoEditService {
         PhotoEditEntity existingPhotoEdit = photoEditRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_EDIT_NOT_FOUND, id));
 
-        // Verify ownership
         if (!existingPhotoEdit.getOwnerId().equals(ownerId)) {
             throw new DataNotFoundException(ExceptionCode.PHOTO_EDIT_NOT_FOUND, id);
         }
 
-        // Verify photo exists if being changed
         if (!existingPhotoEdit.getPhotoId().equals(photoEditRequestDTO.photoId())) {
             photoRepository.findById(photoEditRequestDTO.photoId())
                     .orElseThrow(() -> new DataNotFoundException(ExceptionCode.PHOTO_NOT_FOUND, photoEditRequestDTO.photoId()));

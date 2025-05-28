@@ -1,4 +1,3 @@
-// photo-mgmt-backend/src/main/java/photo_mgmt_backend/model/mapper/AlbumShareMapper.java
 package photo_mgmt_backend.model.mapper;
 
 import org.mapstruct.Mapper;

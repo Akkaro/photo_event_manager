@@ -46,7 +46,6 @@ public record PhotoEditResponseDTO(
 
         ZonedDateTime editedAt,
 
-        // NEW: Versioning fields
         Integer versionNumber,
         String previousVersionUrl,
         String resultVersionUrl

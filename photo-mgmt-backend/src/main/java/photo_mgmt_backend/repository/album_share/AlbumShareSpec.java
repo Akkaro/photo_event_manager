@@ -1,4 +1,3 @@
-// photo-mgmt-backend/src/main/java/photo_mgmt_backend/repository/album_share/AlbumShareSpec.java
 package photo_mgmt_backend.repository.album_share;
 
 import photo_mgmt_backend.model.dto.album_share.AlbumShareFilterDTO;

@@ -48,24 +48,20 @@ public class AlbumControllerBean implements AlbumController {
     public AlbumResponseDTO save(AlbumRequestDTO albumRequestDTO) {
         log.info("[ALBUM] Saving album: {}", albumRequestDTO);
 
-        // Get the current authenticated user's username
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        // Create a filter to find the user by username using the record constructor
         UserFilterDTO filter = new UserFilterDTO(
                 null,  // userName
                 email,            // email
                 null,            // role
                 null,           //createdAt
                 0,               // pageNumber
-                1                // pageSize - We only need one result
+                1                // pageSize
         );
 
-        // Get user from the service
         CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
 
-        // Assuming the username is unique, get the first user's ID
         if (users.elements().isEmpty()) {
             throw new UsernameNotFoundException("Current authenticated user not found in database");
         }
@@ -79,24 +75,20 @@ public class AlbumControllerBean implements AlbumController {
     public AlbumResponseDTO update(UUID id, AlbumRequestDTO albumRequestDTO) {
         log.info("[ALBUM] Updating album: {}", id);
 
-        // Get the current authenticated user's EMAIL (not username)
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName(); // This returns the email
+        String email = authentication.getName();
 
-        // Create a filter to find the user by EMAIL
-        UserFilterDTO filter = new UserFilterDTO(
-                null,        // userName - set to null
-                email,       // email - use the email from authentication
+         UserFilterDTO filter = new UserFilterDTO(
+                null,        // userName
+                email,       // email
                 null,        // role
                 null,        // createdAt
                 0,           // pageNumber
-                1            // pageSize - We only need one result
+                1            // pageSize
         );
 
-        // Get user from the service
         CollectionResponseDTO<UserResponseDTO> users = userService.findAll(filter);
 
-        // Assuming the email is unique, get the first user's ID
         if (users.elements().isEmpty()) {
             throw new UsernameNotFoundException("Current authenticated user not found in database");
         }

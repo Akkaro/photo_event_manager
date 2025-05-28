@@ -25,8 +25,6 @@ public interface PhotoEditRepository extends JpaRepository<PhotoEditEntity, UUID
     @Query("DELETE FROM PhotoEditEntity pe WHERE pe.photoId = :photoId")
     void deleteByPhotoId(@Param("photoId") UUID photoId);
 
-    // NEW: Version management methods
-
     /**
      * Find all versions of a photo ordered by version number descending (newest first)
      */

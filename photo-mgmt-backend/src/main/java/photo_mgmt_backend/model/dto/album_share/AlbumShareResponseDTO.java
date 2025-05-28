@@ -1,4 +1,3 @@
-// photo-mgmt-backend/src/main/java/photo_mgmt_backend/model/dto/album_share/AlbumShareResponseDTO.java
 package photo_mgmt_backend.model.dto.album_share;
 
 import java.time.ZonedDateTime;
